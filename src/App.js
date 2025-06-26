@@ -1,3 +1,17 @@
+/**
+ * @author: David Chung
+ * 
+ * Creation Date: 6/22/2025
+ * 
+ * Creates FastAPI app
+ * Adds CORS middleware (so frontend at port 3000 can talk to backend 8000)
+ * 
+ * Defines:
+ * POST /score-session: accepts metrics + transcript JSON, runs score_session, returns result
+ * 
+ */
+
+
 import React from 'react';
 import InterviewSession from './components/InterviewSession';
 import FeedbackReport from './components/FeedbackReport';
