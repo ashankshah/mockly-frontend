@@ -1,25 +1,38 @@
 import React from 'react';
 
 function FeedbackReport({ report }) {
+  const getTagClass = (score) => {
+    if (score >= 4) return "score-tag score-green";
+    if (score >= 3) return "score-tag score-yellow";
+    return "score-tag score-red";
+  };
+
   return (
     <div>
+      <div className={getTagClass(report.content_score)}>
+        Content Score: {report.content_score}
+      </div>
+      <div className={getTagClass(report.voice_score)}>
+        Voice Score: {report.voice_score}
+      </div>
+      <div className={getTagClass(report.face_score)}>
+        Face Score: {report.face_score}
+      </div>
 
-      <p><strong>Content Score:</strong> {report.content_score}</p>
-      <p><strong>Voice Score:</strong> {report.voice_score}</p>
-      <p><strong>Face Score:</strong> {report.face_score}</p>
-
-      <h3>Tips</h3>
-      <ul>
-        {Object.entries(report.tips).map(([key, tip]) => (
-          <li key={key}><strong>{key}:</strong> {tip}</li>
-        ))}
-      </ul>
+      <div className="tip-section">
+        <h3>Tips</h3>
+        <ul>
+          {Object.entries(report.tips).map(([key, tip]) => (
+            <li key={key}><strong>{key}:</strong> {tip}</li>
+          ))}
+        </ul>
+      </div>
 
       {report.transcript_debug && (
-        <>
+        <div className="transcript-box">
           <h3>Transcript</h3>
-          <p style={{ whiteSpace: 'pre-wrap' }}>{report.transcript_debug}</p>
-        </>
+          <p>{report.transcript_debug}</p>
+        </div>
       )}
     </div>
   );

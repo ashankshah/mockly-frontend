@@ -1,4 +1,3 @@
-
 import React from 'react';
 import VideoAudioProcessor from './VideoAudioProcessor';
 
@@ -17,8 +16,14 @@ function InterviewSession({ onComplete }) {
 
   return (
     <div>
-      <button onClick={() => setIsRunning(true)}>Start Interview</button>
-      {isRunning && (
+      {!isRunning ? (
+        <>
+          <p>When you're ready, click below to start your interview.</p>
+          <button className="mockly-button" onClick={() => setIsRunning(true)}>
+            Start Interview
+          </button>
+        </>
+      ) : (
         <VideoAudioProcessor onFinish={handleFinish} />
       )}
     </div>
