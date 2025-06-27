@@ -3,7 +3,10 @@ import VideoAudioProcessor from './VideoAudioProcessor';
 
 function InterviewSession({ onComplete }) {
   const [isRunning, setIsRunning] = React.useState(false);
-
+  const handleStart = () => {
+    setIsRunning(true);
+    if (onStart) onStart();
+  };
   const handleFinish = (metrics, transcript) => {
     fetch('http://127.0.0.1:8000/score-session', {
       method: 'POST',

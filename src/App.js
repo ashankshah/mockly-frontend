@@ -12,31 +12,33 @@
  */
 
 
-import React from 'react';
-import InterviewSession from './components/InterviewSession';
-import FeedbackReport from './components/FeedbackReport';
-import './theme.css';
-
-function App() {
-  const [report, setReport] = React.useState(null);
-
-  return (
-    <div className="mockly-container">
-      <div className="mockly-card">
-        {!report ? (
-          <>
-            <h1>Mockly AI Interview</h1>
-            <InterviewSession onComplete={setReport} />
-          </>
-        ) : (
-          <>
-            <h1>Your Interview Feedback</h1>
-            <FeedbackReport report={report} />
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-export default App;
+ import React from 'react';
+ import InterviewSession from './components/InterviewSession';
+ import FeedbackReport from './components/FeedbackReport';
+ import './theme.css';
+ 
+ function App() {
+   const [report, setReport] = React.useState(null);
+   const [interviewStarted, setInterviewStarted] = React.useState(false);
+ 
+   return (
+     <div className={`mockly-container ${interviewStarted ? 'expanded' : ''}`}>
+      <div className={`mockly-card ${!interviewStarted && !report ? 'mockly-card--small' : 'mockly-card--large'}`}>
+         {!report ? (
+           <>
+             <h1 className="mockly-title">Mockly AI Interview</h1>
+             <InterviewSession onComplete={setReport} onStart={() => setInterviewStarted(true)} />
+           </>
+         ) : (
+           <>
+             <h1 className="mockly-title">Your Interview Feedback</h1>
+             <FeedbackReport report={report} />
+           </>
+         )}
+       </div>
+     </div>
+   );
+ }
+ 
+ export default App;
+ 
