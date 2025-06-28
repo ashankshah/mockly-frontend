@@ -4,7 +4,7 @@
 
 **Mockly** is an AI-powered mock interview application that provides real-time feedback on interview performance. The system analyzes both verbal content and non-verbal cues (voice and facial expressions) to give comprehensive feedback to users practicing for job interviews.
 
-The frontend is a React.js application that provides an intuitive, professional interface for conducting mock interviews. It captures video and audio in real-time, processes speech into transcripts, and displays comprehensive feedback with actionable insights.
+The frontend is a React.js application that provides an intuitive, professional interface for conducting mock interviews. It captures video and audio in real-time, processes speech into transcripts, and displays comprehensive feedback with actionable insights including AI-powered STAR method analysis.
 
 ## Architecture Overview
 
@@ -12,6 +12,7 @@ Mockly follows a client-server architecture where:
 - **Frontend**: React.js application running on port 3000
 - **Backend**: FastAPI server running on port 8000 (handles AI analysis and scoring)
 - **Communication**: RESTful API calls between frontend and backend
+- **AI Integration**: Mistral-7B-Instruct-v0.2 for content scoring and STAR analysis
 
 ## Frontend Technology Stack
 
@@ -20,6 +21,7 @@ Mockly follows a client-server architecture where:
 - **MediaDevices API**: Camera and microphone access for video/audio capture
 - **CSS3**: Custom styling with CSS variables and modern design patterns
 - **Fetch API**: HTTP client for backend communication
+- **Grid CSS**: Responsive layout for STAR analysis display
 
 ## Core Components
 
@@ -32,9 +34,10 @@ Mockly follows a client-server architecture where:
 - Responsive container with dynamic sizing based on session state
 - Smooth transitions between interview and feedback views
 - Professional card-based layout with glass morphism effects
+- Reset functionality for new interview sessions
 
 **State Management**:
-- `report`: Stores interview feedback data from backend
+- `report`: Stores interview feedback data from backend (including STAR analysis)
 - `interviewStarted`: Tracks whether interview is in progress
 
 ### 2. Interview Session (`src/components/InterviewSession.js`)
@@ -42,15 +45,23 @@ Mockly follows a client-server architecture where:
 
 **Key Features**:
 - Start/stop interview controls with user-friendly interface
-- API integration with backend scoring endpoint (`/score-session`)
+- **UPDATED**: API integration with comprehensive analysis endpoint (`/comprehensive-analysis`)
 - Handles completion callback with metrics and transcript data
 - Integrates seamlessly with VideoAudioProcessor component
-- **Note**: `onStart` prop is passed but not used in component logic
+- **NEW**: Robust error handling with fallback mechanisms
+- **NEW**: Support for both comprehensive and basic scoring endpoints
 
 **API Integration**:
-- POST request to `http://127.0.0.1:8000/score-session`
+- **Primary**: POST request to `http://127.0.0.1:8000/comprehensive-analysis`
+- **Fallback**: POST request to `http://127.0.0.1:8000/score-session`
 - Sends metrics and transcript data
-- Receives comprehensive scoring feedback
+- Receives comprehensive scoring feedback with STAR analysis
+- **NEW**: Error handling with graceful degradation
+
+**Error Handling**:
+- Comprehensive analysis failure fallback to basic scoring
+- Network error handling with user feedback
+- Default response generation for complete failure scenarios
 
 ### 3. Video Audio Processor (`src/components/VideoAudioProcessor.js`)
 **Purpose**: Core interview recording and processing component
@@ -58,7 +69,7 @@ Mockly follows a client-server architecture where:
 **Key Features**:
 - Real-time video capture using MediaDevices API
 - Live speech recognition using Web Speech API
-- 5-second automatic session duration (configurable)
+- **UPDATED**: 10-second automatic session duration (configurable)
 - Live transcript display with animated listening indicator
 - Mock metrics generation (voice: 3.5, face: 4.2)
 - Automatic cleanup of media streams and resources
@@ -79,11 +90,22 @@ Mockly follows a client-server architecture where:
 - Debug transcript display for development and verification
 - Responsive design with visual feedback indicators
 - Professional presentation of scoring data
+- **NEW**: STAR Method Analysis display with categorized breakdown
+- **NEW**: Interactive STAR component grid layout
+- **NEW**: Color-coded STAR categories for visual distinction
 
 **Scoring Visualization**:
 - Green: Score ≥ 4.0 (Excellent)
 - Yellow: Score ≥ 3.0 (Good)
 - Red: Score < 3.0 (Needs Improvement)
+
+**STAR Analysis Display**:
+- **Situation**: Green (#3BA676) - Context and background information
+- **Task**: Yellow (#FACC15) - Objectives and requirements
+- **Action**: Red (#EF4444) - Specific actions and approaches
+- **Result**: Purple (#8B5CF6) - Outcomes and impact
+- Responsive grid layout with hover effects
+- Empty state handling for missing STAR components
 
 ## Styling and Design System (`src/theme.css`)
 
@@ -94,6 +116,7 @@ Modern, professional interview-focused aesthetic with accessibility and usabilit
 - **Primary**: Mint/sage theme (#3BA676, #EAF7F1, #acd5ca, #205E4A)
 - **Neutrals**: Rich graphite (#1A1A1A), muted gray (#6B7280)
 - **Feedback Colors**: Success (#3BA676), Warning (#FACC15), Danger (#EF4444)
+- **NEW**: STAR Colors - Situation (#3BA676), Task (#FACC15), Action (#EF4444), Result (#8B5CF6)
 
 ### Key Design Features
 - **CSS Custom Properties**: Consistent theming across components
@@ -101,6 +124,8 @@ Modern, professional interview-focused aesthetic with accessibility and usabilit
 - **Responsive Design**: Clamp() functions for fluid typography and spacing
 - **Smooth Animations**: Transitions and hover effects for better UX
 - **Professional Layout**: Card-based design with elevated shadows
+- **NEW**: CSS Grid for STAR analysis layout
+- **NEW**: Hover effects for interactive STAR components
 
 ### Component-Specific Styling
 - **Mockly Container**: Responsive centering with dynamic sizing
@@ -109,6 +134,18 @@ Modern, professional interview-focused aesthetic with accessibility and usabilit
 - **Score Tags**: Color-coded performance indicators
 - **Video Box**: 16:9 aspect ratio with rounded corners
 - **Transcript Box**: Monospace font for readability
+- **NEW**: STAR Analysis Section - Glass morphism with border accent
+- **NEW**: STAR Grid - Responsive grid layout with auto-fit columns
+- **NEW**: STAR Components - Individual cards with color-coded borders
+- **NEW**: STAR Content - Typography and spacing for readability
+
+### STAR Analysis Styling
+- **Grid Layout**: Auto-fit responsive grid with minimum 250px columns
+- **Component Cards**: White background with subtle shadows and hover effects
+- **Color Coding**: Left border accent matching STAR category colors
+- **Typography**: Uppercase headers with letter spacing for professional appearance
+- **Responsive**: Single column layout on mobile devices
+- **Hover Effects**: Subtle lift animation with enhanced shadows
 
 ## User Experience Flow
 
@@ -120,7 +157,7 @@ Modern, professional interview-focused aesthetic with accessibility and usabilit
 ### 2. Interview Session
 - Video preview with live camera feed
 - Real-time transcript display with listening indicator
-- Automatic 5-second session duration
+- **UPDATED**: 10-second automatic session duration
 - Seamless transition to feedback view
 
 ### 3. Feedback Display
@@ -128,6 +165,9 @@ Modern, professional interview-focused aesthetic with accessibility and usabilit
 - Color-coded performance indicators
 - Actionable improvement tips
 - Debug transcript for verification
+- **NEW**: STAR Method Analysis with categorized breakdown
+- **NEW**: Visual STAR component grid with color coding
+- **NEW**: Reset button for new interview sessions
 
 ## Technical Implementation Details
 
@@ -137,28 +177,32 @@ Modern, professional interview-focused aesthetic with accessibility and usabilit
 - No external state management library required
 
 ### API Communication
-- RESTful API calls to backend
+- **Primary**: Comprehensive analysis endpoint for combined scoring and STAR
+- **Fallback**: Basic scoring endpoint for error recovery
 - JSON data format for request/response
-- Error handling with user feedback
+- Error handling with graceful degradation
+- **NEW**: Dual endpoint strategy for reliability
 
 ### Browser Compatibility
 - Modern browser support required
 - Web Speech API dependency
 - MediaDevices API for camera/microphone
 - Fallback handling for unsupported features
+- **NEW**: CSS Grid support for STAR layout
 
 ### Performance Considerations
 - Automatic cleanup of media streams
 - Efficient re-rendering with React hooks
 - Optimized CSS animations
 - Minimal bundle size with standard React
+- **NEW**: Conditional STAR rendering based on data availability
 
 ## Development Setup
 
 ### Prerequisites
 - Node.js and npm installed
 - Modern browser with Web Speech API support
-- Backend server running on port 8000
+- Backend server running on port 8000 with Mistral AI integration
 
 ### Installation and Running
 ```bash
@@ -176,10 +220,11 @@ npm start
 ## Current Limitations and Future Enhancements
 
 ### Current Limitations
-- Fixed 5-second session duration
+- **UPDATED**: Fixed 10-second session duration (increased from 5 seconds)
 - Browser-dependent speech recognition
 - Mock metrics for voice and face analysis
 - Basic error handling
+- **UPDATED**: Now includes real AI-powered content scoring and STAR analysis
 
 ### Planned Improvements
 - Customizable session duration
@@ -190,6 +235,35 @@ npm start
 - User authentication and progress tracking
 - Advanced analytics dashboard
 - Mobile-responsive design improvements
+- **NEW**: STAR analysis export functionality
+- **NEW**: Historical STAR performance tracking
+- **NEW**: Customizable STAR evaluation criteria
+
+## API Integration Details
+
+### Comprehensive Analysis Endpoint
+- **URL**: `POST /comprehensive-analysis`
+- **Request**: `{ metrics, transcript }`
+- **Response**: `{ content_score, voice_score, face_score, tips, transcript_debug, star_analysis }`
+- **Features**: Combined scoring and STAR analysis in single request
+
+### STAR Analysis Data Structure
+```javascript
+{
+  star_analysis: {
+    situation: ["Context sentences..."],
+    task: ["Objective sentences..."],
+    action: ["Action sentences..."],
+    result: ["Outcome sentences..."]
+  }
+}
+```
+
+### Error Handling Strategy
+1. **Primary**: Comprehensive analysis endpoint
+2. **Fallback**: Basic scoring endpoint
+3. **Final**: Default response with error message
+4. **User Feedback**: Console logging for debugging
 
 ## File Structure
 ```
@@ -198,14 +272,14 @@ mockly-frontend/
 │   ├── App.js              # Main React component
 │   ├── index.js            # React entry point
 │   ├── components/         # React components
-│   │   ├── InterviewSession.js
-│   │   ├── VideoAudioProcessor.js
-│   │   └── FeedbackReport.js
-│   └── theme.css           # Styling and design system
+│   │   ├── InterviewSession.js    # Updated with comprehensive API
+│   │   ├── VideoAudioProcessor.js # Core recording component (10s duration)
+│   │   └── FeedbackReport.js      # Enhanced with STAR display
+│   └── theme.css           # Updated styling with STAR components
 ├── public/
 │   └── index.html          # HTML template
 ├── package.json            # Dependencies and scripts
 └── README.md              # Setup instructions
 ```
 
-This documentation provides comprehensive coverage of the Mockly frontend architecture, components, and implementation details. 
+This documentation provides comprehensive coverage of the updated Mockly frontend with STAR analysis integration, enhanced API communication, and improved user experience. 

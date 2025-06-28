@@ -20,7 +20,7 @@
  function App() {
    const [report, setReport] = React.useState(null);
    const [interviewStarted, setInterviewStarted] = React.useState(false);
- 
+
    return (
      <div className={`mockly-container ${interviewStarted ? 'expanded' : ''}`}>
       <div className={`mockly-card ${!interviewStarted && !report ? 'mockly-card--small' : 'mockly-card--large'}`}>
@@ -33,6 +33,17 @@
            <>
              <h1 className="mockly-title">Your Interview Feedback</h1>
              <FeedbackReport report={report} />
+             <div style={{ marginTop: '20px', textAlign: 'center' }}>
+               <button 
+                 className="mockly-button" 
+                 onClick={() => {
+                   setReport(null);
+                   setInterviewStarted(false);
+                 }}
+               >
+                 Start New Interview
+               </button>
+             </div>
            </>
          )}
        </div>
