@@ -5,14 +5,49 @@ function VideoAudioProcessor({ onFinish }) {
   const transcriptRef = useRef('');
   const [liveTranscript, setLiveTranscript] = useState('');
   const [listeningDots, setListeningDots] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
   const dotIntervalRef = useRef(null);
   const recognitionRef = useRef(null);
   const finalTranscriptBuffer = useRef('');
   const updateTimeoutRef = useRef(null);
-  const isProcessingFinal = useRef(false);
+  const hasFinished = useRef(false);
+  const hasInitialized = useRef(false);
+  const timeoutRef = useRef(null);
+  const processingTimeoutRef = useRef(null);
+
+  // Helper functions
+  const getFinalTranscript = () => {
+    return finalTranscriptBuffer.current.trim() || transcriptRef.current || "No speech detected.";
+  };
+
+  const getMockMetrics = () => {
+    return { voice: { score: 3.5 }, face: { score: 4.2 } };
+  };
+
+  const stopStreamTracks = (stream) => {
+    if (stream?.getTracks) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+  };
+
+  const cleanupTimeouts = () => {
+    [timeoutRef, processingTimeoutRef, dotIntervalRef, updateTimeoutRef].forEach(ref => {
+      if (ref.current) {
+        clearTimeout(ref.current);
+        clearInterval(ref.current);
+        ref.current = null;
+      }
+    });
+  };
 
   useEffect(() => {
-    //listening dot animation
+    // Prevent multiple initializations
+    if (hasInitialized.current) {
+      return;
+    }
+    hasInitialized.current = true;
+
+    // Listening dot animation
     dotIntervalRef.current = setInterval(() => {
       setListeningDots(prev => (prev.length >= 3 ? '' : prev + '.'));
     }, 500);
@@ -27,9 +62,13 @@ function VideoAudioProcessor({ onFinish }) {
             autoGainControl: true
           }
         });
-        videoRef.current.srcObject = stream;
-        videoRef.current.muted = true;
-        videoRef.current.play();
+        
+        // Check if video element still exists before setting srcObject
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.muted = true;
+          videoRef.current.play();
+        }
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
@@ -39,11 +78,13 @@ function VideoAudioProcessor({ onFinish }) {
 
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
-        recognition.interimResults = true; // Enable interim results for real-time feedback
+        recognition.interimResults = true;
         recognition.lang = 'en-US';
-        recognition.maxAlternatives = 1; // Reduce processing time by limiting alternatives
+        recognition.maxAlternatives = 1;
 
         recognition.onresult = (event) => {
+          if (hasFinished.current) return;
+          
           let interimTranscript = '';
           let finalTranscript = finalTranscriptBuffer.current;
 
@@ -58,83 +99,87 @@ function VideoAudioProcessor({ onFinish }) {
             }
           }
 
-          // Combine final and interim results for display
           const fullTranscript = finalTranscript + interimTranscript;
-          
-          // Update state immediately for responsive UI
           transcriptRef.current = fullTranscript;
           
-          // Debounce state updates to prevent excessive re-renders
+          // Debounce state updates
           if (updateTimeoutRef.current) {
             clearTimeout(updateTimeoutRef.current);
           }
           updateTimeoutRef.current = setTimeout(() => {
             setLiveTranscript(fullTranscript);
           }, 100);
-          
-          console.log("Final transcript:", finalTranscript);
-          console.log("Interim transcript:", interimTranscript);
-          console.log("Full transcript:", fullTranscript);
-          console.log("Final transcript buffer:", finalTranscriptBuffer.current);
         };
 
         recognition.onerror = (e) => {
           console.error("Speech recognition error:", e);
-          // Don't stop on errors, let it continue
-        };
-
-        recognition.onend = () => {
-          console.log("Speech recognition ended");
-          // If we're processing final results, wait a bit more for any pending results
-          if (isProcessingFinal.current) {
-            setTimeout(() => {
-              console.log("Final processing complete. Final transcript buffer:", finalTranscriptBuffer.current);
-              const mockMetrics = { voice: { score: 3.5 }, face: { score: 4.2 } };
-              const finalTranscript = finalTranscriptBuffer.current.trim() || transcriptRef.current || "No speech detected.";
-              console.log("Final transcript being sent to onFinish:", finalTranscript);
-              console.log("Final transcript length:", finalTranscript.length);
-              onFinish(mockMetrics, finalTranscript);
-            }, 500); // Wait 500ms for any final processing
+          if (hasFinished.current) {
+            recognition.stop();
           }
         };
 
-        recognition.onstart = () => {
-          console.log("Speech recognition started");
+        recognition.onend = () => {
+          if (isProcessing && !hasFinished.current) {
+            hasFinished.current = true;
+            setTimeout(() => {
+              onFinish(getMockMetrics(), getFinalTranscript());
+            }, 200);
+          }
         };
 
         recognitionRef.current = recognition;
         recognition.start();
-        console.log("Speech recognition started");
 
-        setTimeout(() => {
-          console.log("=== SESSION TIMEOUT REACHED ===");
-          console.log("Final transcript buffer:", finalTranscriptBuffer.current);
-          console.log("Transcript ref:", transcriptRef.current);
-          console.log("Live transcript state:", liveTranscript);
+        // Set timeout for session end
+        timeoutRef.current = setTimeout(() => {
+          if (hasFinished.current) return;
           
-          isProcessingFinal.current = true;
-          recognition.stop();
-          stream.getTracks().forEach(track => track.stop());
+          hasFinished.current = true;
+          setIsProcessing(true);
           
-          // Don't call onFinish here - let the onend handler do it after processing
+          if (recognitionRef.current) {
+            recognitionRef.current.stop();
+          }
+          
+          stopStreamTracks(stream);
+          
+          // Fallback timeout
+          processingTimeoutRef.current = setTimeout(() => {
+            onFinish(getMockMetrics(), getFinalTranscript());
+          }, 3000);
         }, 10000);
       } catch (error) {
         console.error("Error starting capture:", error);
-        onFinish({ voice: { score: 3.5 }, face: { score: 4.2 } }, "Error starting capture: " + error.message);
+        onFinish(getMockMetrics(), getFinalTranscript());
       }
     }
 
     startCapture();
+
+    // Cleanup function
     return () => {
-      clearInterval(dotIntervalRef.current);
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
-      }
+      hasFinished.current = true;
+      cleanupTimeouts();
+      
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
     };
-  }, [onFinish]);
+  }, []);
+
+  if (isProcessing) {
+    return (
+      <div className="processing-screen">
+        <div className="processing-content">
+          <h3>Processing Your Interview</h3>
+          <p>Analyzing your response with AI-powered STAR method evaluation...</p>
+          <div className="processing-spinner">
+            <div className="spinner"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -154,7 +199,6 @@ function VideoAudioProcessor({ onFinish }) {
       </div>
     </div>
   );
-  
 }
 
 export default VideoAudioProcessor;
