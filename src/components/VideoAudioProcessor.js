@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 function VideoAudioProcessor({ onFinish }) {
   const videoRef = useRef();
   const transcriptRef = useRef('');
+  const transcriptParagraphRef = useRef();
   const [liveTranscript, setLiveTranscript] = useState('');
   const [listeningDots, setListeningDots] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -39,6 +40,18 @@ function VideoAudioProcessor({ onFinish }) {
       }
     });
   };
+
+  // Auto-scroll transcript to bottom
+  const scrollToBottom = () => {
+    if (transcriptParagraphRef.current) {
+      transcriptParagraphRef.current.scrollTop = transcriptParagraphRef.current.scrollHeight;
+    }
+  };
+
+  // Scroll to bottom whenever transcript updates
+  useEffect(() => {
+    scrollToBottom();
+  }, [liveTranscript]);
 
   useEffect(() => {
     // Prevent multiple initializations
@@ -195,7 +208,7 @@ function VideoAudioProcessor({ onFinish }) {
   
       <div className="transcript-box">
         <h4>Transcript (live)</h4>
-        <p>{liveTranscript || `Listening ${listeningDots}`}</p>
+        <p ref={transcriptParagraphRef}>{liveTranscript || `Listening ${listeningDots}`}</p>
       </div>
     </div>
   );
