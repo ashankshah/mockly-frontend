@@ -1,0 +1,211 @@
+# Mockly Frontend Documentation
+
+## Project Overview
+
+**Mockly** is an AI-powered mock interview application that provides real-time feedback on interview performance. The system analyzes both verbal content and non-verbal cues (voice and facial expressions) to give comprehensive feedback to users practicing for job interviews.
+
+The frontend is a React.js application that provides an intuitive, professional interface for conducting mock interviews. It captures video and audio in real-time, processes speech into transcripts, and displays comprehensive feedback with actionable insights.
+
+## Architecture Overview
+
+Mockly follows a client-server architecture where:
+- **Frontend**: React.js application running on port 3000
+- **Backend**: FastAPI server running on port 8000 (handles AI analysis and scoring)
+- **Communication**: RESTful API calls between frontend and backend
+
+## Frontend Technology Stack
+
+- **React 18**: Modern React with hooks for state management
+- **Web Speech API**: Real-time speech recognition for transcript generation
+- **MediaDevices API**: Camera and microphone access for video/audio capture
+- **CSS3**: Custom styling with CSS variables and modern design patterns
+- **Fetch API**: HTTP client for backend communication
+
+## Core Components
+
+### 1. Main App (`src/App.js`)
+**Purpose**: Application root component with state management and routing logic
+
+**Key Features**:
+- Manages interview session state (started/completed)
+- Handles report display logic and conditional rendering
+- Responsive container with dynamic sizing based on session state
+- Smooth transitions between interview and feedback views
+- Professional card-based layout with glass morphism effects
+
+**State Management**:
+- `report`: Stores interview feedback data from backend
+- `interviewStarted`: Tracks whether interview is in progress
+
+### 2. Interview Session (`src/components/InterviewSession.js`)
+**Purpose**: Manages the interview flow and API communication
+
+**Key Features**:
+- Start/stop interview controls with user-friendly interface
+- API integration with backend scoring endpoint (`/score-session`)
+- Handles completion callback with metrics and transcript data
+- Integrates seamlessly with VideoAudioProcessor component
+- **Note**: `onStart` prop is passed but not used in component logic
+
+**API Integration**:
+- POST request to `http://127.0.0.1:8000/score-session`
+- Sends metrics and transcript data
+- Receives comprehensive scoring feedback
+
+### 3. Video Audio Processor (`src/components/VideoAudioProcessor.js`)
+**Purpose**: Core interview recording and processing component
+
+**Key Features**:
+- Real-time video capture using MediaDevices API
+- Live speech recognition using Web Speech API
+- 5-second automatic session duration (configurable)
+- Live transcript display with animated listening indicator
+- Mock metrics generation (voice: 3.5, face: 4.2)
+- Automatic cleanup of media streams and resources
+- Error handling for unsupported browser features
+
+**Technical Implementation**:
+- Uses `useRef` for video element and transcript storage
+- Implements `useEffect` for lifecycle management
+- Animated dots indicator for user feedback
+- Speech recognition with continuous mode and interim results
+
+### 4. Feedback Report (`src/components/FeedbackReport.js`)
+**Purpose**: Displays comprehensive interview feedback with actionable insights
+
+**Key Features**:
+- Color-coded score display (green/yellow/red based on performance thresholds)
+- Organized tips section with categorized improvement advice
+- Debug transcript display for development and verification
+- Responsive design with visual feedback indicators
+- Professional presentation of scoring data
+
+**Scoring Visualization**:
+- Green: Score ≥ 4.0 (Excellent)
+- Yellow: Score ≥ 3.0 (Good)
+- Red: Score < 3.0 (Needs Improvement)
+
+## Styling and Design System (`src/theme.css`)
+
+### Design Philosophy
+Modern, professional interview-focused aesthetic with accessibility and usability in mind.
+
+### Color Palette
+- **Primary**: Mint/sage theme (#3BA676, #EAF7F1, #acd5ca, #205E4A)
+- **Neutrals**: Rich graphite (#1A1A1A), muted gray (#6B7280)
+- **Feedback Colors**: Success (#3BA676), Warning (#FACC15), Danger (#EF4444)
+
+### Key Design Features
+- **CSS Custom Properties**: Consistent theming across components
+- **Glass Morphism**: Backdrop blur effects for modern appearance
+- **Responsive Design**: Clamp() functions for fluid typography and spacing
+- **Smooth Animations**: Transitions and hover effects for better UX
+- **Professional Layout**: Card-based design with elevated shadows
+
+### Component-Specific Styling
+- **Mockly Container**: Responsive centering with dynamic sizing
+- **Mockly Card**: Glass effect with backdrop blur and shadows
+- **Mockly Button**: Interactive states with hover and active feedback
+- **Score Tags**: Color-coded performance indicators
+- **Video Box**: 16:9 aspect ratio with rounded corners
+- **Transcript Box**: Monospace font for readability
+
+## User Experience Flow
+
+### 1. Initial State
+- Clean, centered interface with project title
+- Clear call-to-action button to start interview
+- Professional mint/sage color scheme
+
+### 2. Interview Session
+- Video preview with live camera feed
+- Real-time transcript display with listening indicator
+- Automatic 5-second session duration
+- Seamless transition to feedback view
+
+### 3. Feedback Display
+- Comprehensive scoring across three dimensions
+- Color-coded performance indicators
+- Actionable improvement tips
+- Debug transcript for verification
+
+## Technical Implementation Details
+
+### State Management
+- React hooks for local state management
+- Props for component communication
+- No external state management library required
+
+### API Communication
+- RESTful API calls to backend
+- JSON data format for request/response
+- Error handling with user feedback
+
+### Browser Compatibility
+- Modern browser support required
+- Web Speech API dependency
+- MediaDevices API for camera/microphone
+- Fallback handling for unsupported features
+
+### Performance Considerations
+- Automatic cleanup of media streams
+- Efficient re-rendering with React hooks
+- Optimized CSS animations
+- Minimal bundle size with standard React
+
+## Development Setup
+
+### Prerequisites
+- Node.js and npm installed
+- Modern browser with Web Speech API support
+- Backend server running on port 8000
+
+### Installation and Running
+```bash
+cd mockly-frontend
+npm install
+npm start
+```
+
+### Development Features
+- Hot reloading with React Scripts
+- Development server on port 3000
+- Browser developer tools integration
+- Debug transcript display for testing
+
+## Current Limitations and Future Enhancements
+
+### Current Limitations
+- Fixed 5-second session duration
+- Browser-dependent speech recognition
+- Mock metrics for voice and face analysis
+- Basic error handling
+
+### Planned Improvements
+- Customizable session duration
+- Enhanced speech recognition accuracy
+- Real-time facial expression analysis
+- Session recording and playback
+- Multiple interview scenarios
+- User authentication and progress tracking
+- Advanced analytics dashboard
+- Mobile-responsive design improvements
+
+## File Structure
+```
+mockly-frontend/
+├── src/
+│   ├── App.js              # Main React component
+│   ├── index.js            # React entry point
+│   ├── components/         # React components
+│   │   ├── InterviewSession.js
+│   │   ├── VideoAudioProcessor.js
+│   │   └── FeedbackReport.js
+│   └── theme.css           # Styling and design system
+├── public/
+│   └── index.html          # HTML template
+├── package.json            # Dependencies and scripts
+└── README.md              # Setup instructions
+```
+
+This documentation provides comprehensive coverage of the Mockly frontend architecture, components, and implementation details. 
