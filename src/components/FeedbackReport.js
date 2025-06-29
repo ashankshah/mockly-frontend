@@ -1,86 +1,111 @@
-import React from 'react';
+/**
+ * Feedback Report Component
+ * Displays comprehensive interview feedback with STAR analysis
+ */
 
-// Static data moved outside component to prevent recreation on each render
-const STAR_COMPONENTS = [
-  { key: 'situation', title: 'Situation', color: '#3BA676' },
-  { key: 'task', title: 'Task', color: '#FACC15' },
-  { key: 'action', title: 'Action', color: '#EF4444' },
-  { key: 'result', title: 'Result', color: '#8B5CF6' }
-];
+import React from 'react';
+import { ScoreEvaluator } from '../utils/interviewUtils';
+import { STAR_COMPONENTS, CSS_CLASSES, UI_TEXT } from '../constants/interviewConstants';
+
+// STAR data accessor for better data handling
+const StarDataAccessor = {
+  getStarData(report) {
+    return report.star_analysis || report.starAnalysis;
+  },
+
+  hasStarData(report) {
+    return !!this.getStarData(report);
+  },
+
+  hasTranscript(report) {
+    return !!report.transcript_debug;
+  }
+};
 
 function FeedbackReport({ report }) {
-  const getTagClass = (score) => {
-    if (score >= 4) return "score-tag score-green";
-    if (score >= 3) return "score-tag score-yellow";
-    return "score-tag score-red";
+  const renderScoreSection = () => (
+    <>
+      <div className={ScoreEvaluator.getScoreClass(report.content_score)}>
+        Content Score: {report.content_score}
+      </div>
+      <div className={ScoreEvaluator.getScoreClass(report.voice_score)}>
+        Voice Score: {report.voice_score}
+      </div>
+      <div className={ScoreEvaluator.getScoreClass(report.face_score)}>
+        Face Score: {report.face_score}
+      </div>
+    </>
+  );
+
+  const renderTipsSection = () => (
+    <div className={CSS_CLASSES.TIP_SECTION}>
+      <h3>{UI_TEXT.TIPS_TITLE}</h3>
+      <ul>
+        {Object.entries(report.tips).map(([tipCategory, tipContent]) => (
+          <li key={tipCategory}>
+            <strong>{tipCategory}:</strong> {tipContent}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+
+  const renderStarComponent = ({ key, title, color }) => {
+    const starData = StarDataAccessor.getStarData(report);
+    const componentData = starData?.[key];
+    
+    return (
+      <div key={key} className={CSS_CLASSES.STAR_COMPONENT}>
+        <h4 style={{ color }}>{title}</h4>
+        <div className={CSS_CLASSES.STAR_CONTENT}>
+          {componentData && componentData.length > 0 ? (
+            <ul>
+              {componentData.map((sentence, index) => (
+                <li key={index}>{sentence}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className={CSS_CLASSES.NO_CONTENT}>No {title.toLowerCase()} identified</p>
+          )}
+        </div>
+      </div>
+    );
   };
 
-  const renderSTARSection = () => {
-    // Check if STAR analysis exists in the report
-    const starData = report.star_analysis || report.starAnalysis;
-    
-    if (!starData) {
+  const renderStarSection = () => {
+    if (!StarDataAccessor.hasStarData(report)) {
       return null;
     }
 
     return (
-      <div className="star-analysis-section">
-        <h3>STAR Method Analysis</h3>
-        <div className="star-grid">
-          {STAR_COMPONENTS.map(({ key, title, color }) => {
-            const componentData = starData[key];
-            
-            return (
-              <div key={key} className="star-component">
-                <h4 style={{ color }}>{title}</h4>
-                <div className="star-content">
-                  {componentData && componentData.length > 0 ? (
-                    <ul>
-                      {componentData.map((sentence, index) => (
-                        <li key={index}>{sentence}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="no-content">No {title.toLowerCase()} identified</p>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+      <div className={CSS_CLASSES.STAR_ANALYSIS_SECTION}>
+        <h3>{UI_TEXT.STAR_ANALYSIS_TITLE}</h3>
+        <div className={CSS_CLASSES.STAR_GRID}>
+          {STAR_COMPONENTS.map(renderStarComponent)}
         </div>
+      </div>
+    );
+  };
+
+  const renderTranscriptSection = () => {
+    if (!StarDataAccessor.hasTranscript(report)) {
+      return null;
+    }
+
+    return (
+      <div className={CSS_CLASSES.TRANSCRIPT_BOX}>
+        <h3>{UI_TEXT.TRANSCRIPT_TITLE_FEEDBACK}</h3>
+        <p>{report.transcript_debug}</p>
       </div>
     );
   };
 
   return (
     <div>
-      <div className={getTagClass(report.content_score)}>
-        Content Score: {report.content_score}
-      </div>
-      <div className={getTagClass(report.voice_score)}>
-        Voice Score: {report.voice_score}
-      </div>
-      <div className={getTagClass(report.face_score)}>
-        Face Score: {report.face_score}
-      </div>
-
-      <div className="tip-section">
-        <h3>Tips</h3>
-        <ul>
-          {Object.entries(report.tips).map(([key, tip]) => (
-            <li key={key}><strong>{key}:</strong> {tip}</li>
-          ))}
-        </ul>
-      </div>
-
-      {renderSTARSection()}
-
-      {report.transcript_debug && (
-        <div className="transcript-box">
-          <h3>Transcript</h3>
-          <p>{report.transcript_debug}</p>
-        </div>
-      )}
+      {renderScoreSection()}
+      {renderTipsSection()}
+      {renderStarSection()}
+      {renderTranscriptSection()}
     </div>
   );
 }

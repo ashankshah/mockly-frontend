@@ -1,55 +1,86 @@
 /**
+ * Mockly AI Interview Application
+ * Main application component that manages interview flow and state
+ * 
  * @author: David Chung
- * 
- * Creation Date: 6/22/2025
- * 
- * Creates FastAPI app
- * Adds CORS middleware (so frontend at port 3000 can talk to backend 8000)
- * 
- * Defines:
- * POST /score-session: accepts metrics + transcript JSON, runs score_session, returns result
- * 
+ * @creation-date: 6/22/2025
  */
 
+import React, { useState } from 'react';
+import InterviewSession from './components/InterviewSession';
+import FeedbackReport from './components/FeedbackReport';
+import { APP_STATES, CSS_CLASSES, UI_TEXT } from './constants/interviewConstants';
+import './theme.css';
 
- import React from 'react';
- import InterviewSession from './components/InterviewSession';
- import FeedbackReport from './components/FeedbackReport';
- import './theme.css';
- 
- function App() {
-   const [report, setReport] = React.useState(null);
-   const [interviewStarted, setInterviewStarted] = React.useState(false);
+function App() {
+  const [interviewReport, setInterviewReport] = useState(null);
+  const [currentState, setCurrentState] = useState(APP_STATES.INITIAL);
 
-   return (
-     <div className={`mockly-container ${interviewStarted ? 'expanded' : ''}`}>
-      <div className={`mockly-card ${!interviewStarted && !report ? 'mockly-card--small' : 'mockly-card--large'}`}>
-         {!report ? (
-           <>
-             <h1 className="mockly-title">Mockly AI Interview</h1>
-             <InterviewSession onComplete={setReport} onStart={() => setInterviewStarted(true)} />
-           </>
-         ) : (
-           <>
-             <h1 className="mockly-title">Your Interview Feedback</h1>
-             <FeedbackReport report={report} />
-             <div style={{ marginTop: '20px', textAlign: 'center' }}>
-               <button 
-                 className="mockly-button" 
-                 onClick={() => {
-                   setReport(null);
-                   setInterviewStarted(false);
-                 }}
-               >
-                 Start New Interview
-               </button>
-             </div>
-           </>
-         )}
-       </div>
-     </div>
-   );
- }
- 
- export default App;
+  const handleInterviewComplete = (report) => {
+    setInterviewReport(report);
+    setCurrentState(APP_STATES.FEEDBACK);
+  };
+
+  const handleInterviewStart = () => {
+    setCurrentState(APP_STATES.INTERVIEWING);
+  };
+
+  const handleStartNewInterview = () => {
+    setInterviewReport(null);
+    setCurrentState(APP_STATES.INITIAL);
+  };
+
+  const getContainerClassName = () => {
+    const isExpanded = currentState !== APP_STATES.INITIAL;
+    return isExpanded ? CSS_CLASSES.CONTAINER_EXPANDED : CSS_CLASSES.CONTAINER;
+  };
+
+  const getCardClassName = () => {
+    const isInitialState = currentState === APP_STATES.INITIAL;
+    return isInitialState ? CSS_CLASSES.CARD_SMALL : CSS_CLASSES.CARD_LARGE;
+  };
+
+  const renderInitialScreen = () => (
+    <>
+      <h1 className="mockly-title">{UI_TEXT.APP_TITLE}</h1>
+      <InterviewSession 
+        onComplete={handleInterviewComplete} 
+        onStart={handleInterviewStart} 
+      />
+    </>
+  );
+
+  const renderFeedbackScreen = () => (
+    <>
+      <h1 className="mockly-title">{UI_TEXT.FEEDBACK_TITLE}</h1>
+      <FeedbackReport report={interviewReport} />
+      <button 
+        className={CSS_CLASSES.BUTTON} 
+        style={{ marginTop: 'var(--spacing-lg)', display: 'block', margin: 'var(--spacing-lg) auto 0' }}
+        onClick={handleStartNewInterview}
+      >
+        {UI_TEXT.START_NEW_INTERVIEW}
+      </button>
+    </>
+  );
+
+  const renderContent = () => {
+    switch (currentState) {
+      case APP_STATES.FEEDBACK:
+        return renderFeedbackScreen();
+      default:
+        return renderInitialScreen();
+    }
+  };
+
+  return (
+    <div className={getContainerClassName()}>
+      <div className={getCardClassName()}>
+        {renderContent()}
+      </div>
+    </div>
+  );
+}
+
+export default App;
  
