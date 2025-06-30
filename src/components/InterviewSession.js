@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import VideoAudioProcessor from './VideoAudioProcessor';
 import { CONFIG, isApiDisabled, getMockResponse, simulateApiDelay } from '../config';
 import { SCORE_THRESHOLDS, ErrorHandler } from '../utils/interviewUtils';
-import { CSS_CLASSES, UI_TEXT, DEFAULT_TIPS, DEV_MESSAGES } from '../constants/interviewConstants';
+import { UI_TEXT, DEFAULT_TIPS, DEV_MESSAGES, INTERVIEW_QUESTIONS } from '../constants/interviewConstants';
 
 // Default response for fallback scenarios
 const createDefaultResponse = (metrics, transcript) => ({
@@ -59,11 +59,22 @@ class InterviewApiService {
 
 function InterviewSession({ onComplete, onStart }) {
   const [isInterviewRunning, setIsInterviewRunning] = useState(false);
+  const [selectedQuestion, setSelectedQuestion] = useState('');
   const apiService = new InterviewApiService(CONFIG);
 
   const handleInterviewStart = () => {
+    if (!selectedQuestion) {
+      alert('Please select a question before starting the interview.');
+      return;
+    }
     setIsInterviewRunning(true);
     if (onStart) onStart();
+  };
+
+  const handleQuestionChange = (event) => {
+    setSelectedQuestion(event.target.value);
+    // Remove focus from dropdown after selection
+    event.target.blur();
   };
 
   const handleMockAnalysis = async (metrics, transcript) => {
@@ -109,27 +120,61 @@ function InterviewSession({ onComplete, onStart }) {
   };
 
   const renderDevModeWarning = () => (
-    <div style={{ 
-      background: '#fff3cd', 
-      border: '1px solid #ffeaa7', 
-      borderRadius: '8px', 
-      padding: '8px 12px', 
-      marginBottom: '12px',
-      fontSize: '14px',
-      color: '#856404'
-    }}>
+    <div className="interview-session__dev-warning">
       {DEV_MESSAGES.API_DISABLED}
     </div>
   );
 
+  const renderQuestionSelector = () => (
+    <div className="question-selector">
+      <label htmlFor="question-select" className="question-selector__label">
+        Choose your question:
+      </label>
+      <select
+        id="question-select"
+        className="question-selector__dropdown"
+        value={selectedQuestion}
+        onChange={handleQuestionChange}
+        required
+      >
+        <option value="">Select a behavioral question...</option>
+        {INTERVIEW_QUESTIONS.map((question) => (
+          <option key={question.id} value={question.id}>
+            {question.text}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  const renderSelectedQuestion = () => {
+    if (!selectedQuestion) return null;
+    
+    const question = INTERVIEW_QUESTIONS.find(q => q.id === selectedQuestion);
+    if (!question) return null;
+
+    return (
+      <div className="selected-question">
+        <h4 className="selected-question__title">Your Question:</h4>
+        <p className="selected-question__text">{question.text}</p>
+      </div>
+    );
+  };
+
   const renderStartButton = () => (
-    <>
-      <p>{UI_TEXT.READY_MESSAGE}</p>
+    <div className="interview-session">
+      <p className="interview-session__message">{UI_TEXT.READY_MESSAGE}</p>
+      {renderQuestionSelector()}
+      {renderSelectedQuestion()}
       {isApiDisabled() && renderDevModeWarning()}
-      <button className={CSS_CLASSES.BUTTON} onClick={handleInterviewStart}>
+      <button 
+        className={`button ${!selectedQuestion ? 'button--disabled' : ''}`}
+        onClick={handleInterviewStart}
+        disabled={!selectedQuestion}
+      >
         {UI_TEXT.START_INTERVIEW}
       </button>
-    </>
+    </div>
   );
 
   const renderVideoProcessor = () => (

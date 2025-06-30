@@ -23,6 +23,12 @@ export const ScoreEvaluator = {
     return "score-tag score-red";
   },
 
+  getScoreVariant(score) {
+    if (score >= SCORE_THRESHOLDS.EXCELLENT) return "success";
+    if (score >= SCORE_THRESHOLDS.GOOD) return "warning";
+    return "error";
+  },
+
   isExcellent(score) {
     return score >= SCORE_THRESHOLDS.EXCELLENT;
   },

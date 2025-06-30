@@ -23,46 +23,75 @@ Mockly follows a client-server architecture where:
 - **Fetch API**: HTTP client for backend communication
 - **Grid CSS**: Responsive layout for STAR analysis display
 
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── App.js                    # Main application component
+│   ├── InterviewSession.js       # Interview flow management
+│   ├── FeedbackReport.js         # Feedback display component
+│   └── VideoAudioProcessor.js    # Media capture and processing
+├── utils/
+│   └── interviewUtils.js         # Common utilities and helpers
+├── constants/
+│   └── interviewConstants.js     # Centralized constants and configuration
+├── theme.css                     # Design system and styling
+└── config.js                     # Application configuration
+```
+
 ## Core Components
 
 ### 1. Main App (`src/App.js`)
 **Purpose**: Application root component with state management and routing logic
 
 **Key Features**:
-- Manages interview session state (started/completed)
-- Handles report display logic and conditional rendering
+- Manages application state using enum-like constants
+- Handles interview flow transitions between states
 - Responsive container with dynamic sizing based on session state
 - Smooth transitions between interview and feedback views
 - Professional card-based layout with glass morphism effects
 - Reset functionality for new interview sessions
 
 **State Management**:
-- `report`: Stores interview feedback data from backend (including STAR analysis)
-- `interviewStarted`: Tracks whether interview is in progress
+- `interviewReport`: Stores interview feedback data from backend
+- `currentState`: Tracks application state (initial, interviewing, feedback)
+- Uses `APP_STATES` constants for clear state management
+
+**State Flow**:
+- `INITIAL`: Welcome screen with start button
+- `INTERVIEWING`: Active interview session
+- `FEEDBACK`: Results display with STAR analysis
 
 ### 2. Interview Session (`src/components/InterviewSession.js`)
 **Purpose**: Manages the interview flow and API communication
 
 **Key Features**:
 - Start/stop interview controls with user-friendly interface
-- **UPDATED**: API integration with comprehensive analysis endpoint (`/comprehensive-analysis`)
+- API integration with comprehensive analysis endpoint
 - Handles completion callback with metrics and transcript data
 - Integrates seamlessly with VideoAudioProcessor component
-- **NEW**: Robust error handling with fallback mechanisms
-- **NEW**: Support for both comprehensive and basic scoring endpoints
+- Robust error handling with fallback mechanisms
+- Support for both comprehensive and basic scoring endpoints
+- Development mode support with mock data
 
 **API Integration**:
-- **Primary**: POST request to `http://127.0.0.1:8000/comprehensive-analysis`
-- **Fallback**: POST request to `http://127.0.0.1:8000/score-session`
+- **Primary**: POST request to `/comprehensive-analysis`
+- **Fallback**: POST request to `/score-session`
 - Sends metrics and transcript data
 - Receives comprehensive scoring feedback with STAR analysis
-- **NEW**: Error handling with graceful degradation
+- Error handling with graceful degradation
+
+**API Service Class**:
+- `InterviewApiService`: Encapsulates API communication logic
+- Centralized error handling and request management
+- Clean separation of concerns
 
 **Error Handling**:
 - Comprehensive analysis failure fallback to basic scoring
 - Network error handling with user feedback
 - Default response generation for complete failure scenarios
-- **PRODUCTION READY**: Minimal console logging for critical errors only
+- Development mode detection and mock data usage
 
 ### 3. Video Audio Processor (`src/components/VideoAudioProcessor.js`)
 **Purpose**: Core interview recording and processing component
@@ -70,34 +99,45 @@ Mockly follows a client-server architecture where:
 **Key Features**:
 - Real-time video capture using MediaDevices API
 - Live speech recognition using Web Speech API
-- **UPDATED**: 10-second automatic session duration (configurable)
+- 10-second automatic session duration (configurable)
 - Live transcript display with animated listening indicator
 - Mock metrics generation (voice: 3.5, face: 4.2)
 - Automatic cleanup of media streams and resources
 - Error handling for unsupported browser features
-- **PRODUCTION READY**: Clean console logging with only essential error reporting
+- Development mode transcript simulation
 
 **Technical Implementation**:
 - Uses `useRef` for video element and transcript storage
 - Implements `useEffect` for lifecycle management
 - Animated dots indicator for user feedback
 - Speech recognition with continuous mode and interim results
-- **NEW**: Processing screen with loading animation
-- **NEW**: Fallback timeout to prevent stuck states
+- Processing screen with loading animation
+- Fallback timeout to prevent stuck states
+
+**Utility Integration**:
+- `TranscriptValidator`: Transcript validation and formatting
+- `MediaStreamUtils`: Media stream operations
+- `SpeechRecognitionUtils`: Speech recognition operations
+- `TimeoutManager`: Timeout and interval management
+- `ErrorHandler`: Centralized error handling
+
+**Transcript Simulation**:
+- Development mode transcript simulation for testing
+- Configurable sentence intervals and interim text display
+- Automatic cleanup and state management
 
 ### 4. Feedback Report (`src/components/FeedbackReport.js`)
 **Purpose**: Displays comprehensive interview feedback with actionable insights
 
 **Key Features**:
-- Color-coded score display (green/yellow/red based on performance thresholds)
+- Color-coded score display based on performance thresholds
 - Organized tips section with categorized improvement advice
 - Debug transcript display for development and verification
 - Responsive design with visual feedback indicators
 - Professional presentation of scoring data
-- **NEW**: STAR Method Analysis display with categorized breakdown
-- **NEW**: Interactive STAR component grid layout
-- **NEW**: Color-coded STAR categories for visual distinction
-- **PRODUCTION READY**: Clean console logging with only essential error reporting
+- STAR Method Analysis display with categorized breakdown
+- Interactive STAR component grid layout
+- Color-coded STAR categories for visual distinction
 
 **Scoring Visualization**:
 - Green: Score ≥ 4.0 (Excellent)
@@ -112,16 +152,80 @@ Mockly follows a client-server architecture where:
 - Responsive grid layout with hover effects
 - Empty state handling for missing STAR components
 
+**Data Access Patterns**:
+- `StarDataAccessor`: Consistent data handling for STAR analysis
+- `ScoreEvaluator`: Centralized score evaluation logic
+
+## Utility System
+
+### Interview Utilities (`src/utils/interviewUtils.js`)
+**Purpose**: Common functions and constants used across interview components
+
+**Key Utilities**:
+- `ScoreEvaluator`: Consistent score evaluation and classification
+- `TranscriptValidator`: Transcript validation and formatting
+- `ErrorHandler`: Centralized error handling
+- `TimeoutManager`: Timeout and interval management
+- `MediaStreamUtils`: Media stream operations
+- `SpeechRecognitionUtils`: Speech recognition operations
+
+**Benefits**:
+- Eliminates code duplication
+- Provides consistent patterns across components
+- Improves testability and maintainability
+- Centralizes common functionality
+
+### Constants System (`src/constants/interviewConstants.js`)
+**Purpose**: Centralized configuration values for the interview system
+
+**Configuration Categories**:
+- `INTERVIEW_CONFIG`: Session configuration
+- `AUDIO_CONSTRAINTS`: Audio quality settings
+- `SPEECH_CONFIG`: Speech recognition settings
+- `STAR_COMPONENTS`: STAR analysis configuration
+- `APP_STATES`: Application state constants
+- `CSS_CLASSES`: CSS class name constants
+- `ERROR_MESSAGES`: Error message constants
+- `UI_TEXT`: User interface text constants
+
+**Benefits**:
+- Single source of truth for configuration
+- Easy maintenance and updates
+- Consistent naming across the application
+- Clear separation of concerns
+
 ## Styling and Design System (`src/theme.css`)
 
 ### Design Philosophy
 Modern, professional interview-focused aesthetic with accessibility and usability in mind.
 
+### Design System Structure
+**CSS Custom Properties**:
+- **Border Radius**: Base, small, and large variants
+- **Color Palette**: Primary, neutral, and semantic colors
+- **Shadows**: Small, medium, and large shadow variants
+- **Typography Scale**: Small, base, large, and extra-large
+- **Spacing Scale**: Small, medium, large, and extra-large
+- **Transitions**: Fast, normal, and slow timing
+- **Layout Constants**: Video and transcript configuration
+
 ### Color Palette
 - **Primary**: Mint/sage theme (#3BA676, #EAF7F1, #acd5ca, #205E4A)
 - **Neutrals**: Rich graphite (#1A1A1A), muted gray (#6B7280)
-- **Feedback Colors**: Success (#3BA676), Warning (#FACC15), Danger (#EF4444)
-- **NEW**: STAR Colors - Situation (#3BA676), Task (#FACC15), Action (#EF4444), Result (#8B5CF6)
+- **Semantic Colors**: Success (#3BA676), Warning (#FACC15), Error (#EF4444)
+- **STAR Colors**: Situation (#3BA676), Task (#FACC15), Action (#EF4444), Result (#8B5CF6)
+
+### Component Organization
+**Base Styles**: Foundation typography and body styles
+**Layout Components**: Structure and positioning
+**Interactive Elements**: Buttons and controls
+**Feedback Components**: Scores and tips
+**STAR Analysis Components**: Interview feedback display
+**Media Components**: Video and transcript
+**Processing Screen**: Loading states
+**Animations**: Keyframes and transitions
+**Responsive Design**: Media queries for different screen sizes
+**Utility Classes**: Helper styles
 
 ### Key Design Features
 - **CSS Custom Properties**: Consistent theming across components
@@ -129,29 +233,8 @@ Modern, professional interview-focused aesthetic with accessibility and usabilit
 - **Responsive Design**: Clamp() functions for fluid typography and spacing
 - **Smooth Animations**: Transitions and hover effects for better UX
 - **Professional Layout**: Card-based design with elevated shadows
-- **NEW**: CSS Grid for STAR analysis layout
-- **NEW**: Hover effects for interactive STAR components
-
-### Component-Specific Styling
-- **Mockly Container**: Responsive centering with dynamic sizing
-- **Mockly Card**: Glass effect with backdrop blur and shadows
-- **Mockly Button**: Interactive states with hover and active feedback
-- **Score Tags**: Color-coded performance indicators
-- **Video Box**: 16:9 aspect ratio with rounded corners
-- **Transcript Box**: Monospace font for readability
-- **NEW**: STAR Analysis Section - Glass morphism with border accent
-- **NEW**: STAR Grid - Responsive grid layout with auto-fit columns
-- **NEW**: STAR Components - Individual cards with color-coded borders
-- **NEW**: STAR Content - Typography and spacing for readability
-- **NEW**: Processing Screen - Loading animation with professional styling
-
-### STAR Analysis Styling
-- **Grid Layout**: Auto-fit responsive grid with minimum 250px columns
-- **Component Cards**: White background with subtle shadows and hover effects
-- **Color Coding**: Left border accent matching STAR category colors
-- **Typography**: Uppercase headers with letter spacing for professional appearance
-- **Responsive**: Single column layout on mobile devices
-- **Hover Effects**: Subtle lift animation with enhanced shadows
+- **CSS Grid**: Responsive layout for STAR analysis display
+- **Hover Effects**: Interactive feedback for user engagement
 
 ## User Experience Flow
 
@@ -159,15 +242,17 @@ Modern, professional interview-focused aesthetic with accessibility and usabilit
 - Clean, centered interface with project title
 - Clear call-to-action button to start interview
 - Professional mint/sage color scheme
+- Development mode indicators when applicable
 
 ### 2. Interview Session
 - Video preview with live camera feed
 - Real-time transcript display with listening indicator
-- **UPDATED**: 10-second automatic session duration
+- 10-second automatic session duration
 - Seamless transition to processing screen
+- Development mode transcript simulation support
 
 ### 3. Processing Screen
-- **NEW**: Professional loading animation
+- Professional loading animation
 - Clear messaging about AI analysis
 - Automatic transition to feedback view
 - Fallback timeout to prevent stuck states
@@ -177,15 +262,16 @@ Modern, professional interview-focused aesthetic with accessibility and usabilit
 - Color-coded performance indicators
 - Actionable improvement tips
 - Debug transcript for verification
-- **NEW**: STAR Method Analysis with categorized breakdown
-- **NEW**: Visual STAR component grid with color coding
-- **NEW**: Reset button for new interview sessions
+- STAR Method Analysis with categorized breakdown
+- Visual STAR component grid with color coding
+- Reset button for new interview sessions
 
 ## Technical Implementation Details
 
 ### State Management
 - React hooks for local state management
 - Props for component communication
+- Enum-like state constants for clarity
 - No external state management library required
 
 ### API Communication
@@ -193,29 +279,45 @@ Modern, professional interview-focused aesthetic with accessibility and usabilit
 - **Fallback**: Basic scoring endpoint for error recovery
 - JSON data format for request/response
 - Error handling with graceful degradation
-- **NEW**: Dual endpoint strategy for reliability
+- Service class pattern for API operations
 
 ### Browser Compatibility
 - Modern browser support required
 - Web Speech API dependency
 - MediaDevices API for camera/microphone
 - Fallback handling for unsupported features
-- **NEW**: CSS Grid support for STAR layout
+- CSS Grid support for responsive layouts
 
-### Performance Considerations
-- Automatic cleanup of media streams
-- Efficient re-rendering with React hooks
-- Optimized CSS animations
-- Minimal bundle size with standard React
-- **NEW**: Conditional STAR rendering based on data availability
-- **PRODUCTION READY**: Minimal console logging for optimal performance
+### Development Features
+- Environment-based configuration
+- Mock data support for development
+- Transcript simulation for testing
+- Comprehensive error logging
+- Development mode indicators
 
-### Production Readiness
-- **CLEAN CODE**: Removed all unnecessary console logs
-- **ERROR HANDLING**: Only essential error logging preserved
-- **RESOURCE CLEANUP**: Proper cleanup of timeouts and media streams
-- **FALLBACK MECHANISMS**: Robust error recovery strategies
-- **PERFORMANCE OPTIMIZED**: Minimal overhead from debugging code
+## Code Quality Standards
+
+### Clean Code Principles
+- **Meaningful Names**: Descriptive variable and function names
+- **Single Responsibility**: Each component has one clear purpose
+- **DRY Principle**: No code duplication, centralized utilities
+- **Simplified Control Flow**: Clear, readable logic
+- **Pure Functions**: Utility functions with clear inputs/outputs
+- **Testable Structure**: Modular design for easy testing
+
+### File Organization
+- **Components**: Focused, single-purpose React components
+- **Utilities**: Reusable helper functions
+- **Constants**: Centralized configuration
+- **Styles**: Organized design system
+- **Configuration**: Environment-specific settings
+
+### Documentation
+- Comprehensive component documentation
+- Clear code comments and structure
+- Design system documentation
+- API integration guides
+- Development workflow documentation
 
 ## Development Setup
 

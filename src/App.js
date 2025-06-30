@@ -9,7 +9,7 @@
 import React, { useState } from 'react';
 import InterviewSession from './components/InterviewSession';
 import FeedbackReport from './components/FeedbackReport';
-import { APP_STATES, CSS_CLASSES, UI_TEXT } from './constants/interviewConstants';
+import { APP_STATES, UI_TEXT } from './constants/interviewConstants';
 import './theme.css';
 
 function App() {
@@ -32,36 +32,37 @@ function App() {
 
   const getContainerClassName = () => {
     const isExpanded = currentState !== APP_STATES.INITIAL;
-    return isExpanded ? CSS_CLASSES.CONTAINER_EXPANDED : CSS_CLASSES.CONTAINER;
+    return isExpanded ? 'app app--expanded' : 'app';
   };
 
   const getCardClassName = () => {
     const isInitialState = currentState === APP_STATES.INITIAL;
-    return isInitialState ? CSS_CLASSES.CARD_SMALL : CSS_CLASSES.CARD_LARGE;
+    return isInitialState ? 'card card--small' : 'card card--large';
   };
 
   const renderInitialScreen = () => (
-    <>
-      <h1 className="mockly-title">{UI_TEXT.APP_TITLE}</h1>
+    <div className="card__content">
+      <h1 className="app__title">{UI_TEXT.APP_TITLE}</h1>
       <InterviewSession 
         onComplete={handleInterviewComplete} 
         onStart={handleInterviewStart} 
       />
-    </>
+    </div>
   );
 
   const renderFeedbackScreen = () => (
-    <>
-      <h1 className="mockly-title">{UI_TEXT.FEEDBACK_TITLE}</h1>
+    <div className="card__content">
+      <h1 className="app__title">{UI_TEXT.FEEDBACK_TITLE}</h1>
       <FeedbackReport report={interviewReport} />
-      <button 
-        className={CSS_CLASSES.BUTTON} 
-        style={{ marginTop: 'var(--spacing-lg)', display: 'block', margin: 'var(--spacing-lg) auto 0' }}
-        onClick={handleStartNewInterview}
-      >
-        {UI_TEXT.START_NEW_INTERVIEW}
-      </button>
-    </>
+      <div className="card__footer">
+        <button 
+          className="button button--centered" 
+          onClick={handleStartNewInterview}
+        >
+          {UI_TEXT.START_NEW_INTERVIEW}
+        </button>
+      </div>
+    </div>
   );
 
   const renderContent = () => {

@@ -281,26 +281,19 @@ function VideoAudioProcessor({ onFinish }) {
 
   // Render functions
   const renderProcessingScreen = () => (
-    <div className={CSS_CLASSES.PROCESSING_SCREEN}>
-      <div className={CSS_CLASSES.PROCESSING_CONTENT}>
-        <h3>{UI_TEXT.PROCESSING_TITLE}</h3>
-        <p>{UI_TEXT.PROCESSING_MESSAGE}</p>
-        <div className={CSS_CLASSES.PROCESSING_SPINNER}>
-          <div className={CSS_CLASSES.SPINNER}></div>
+    <div className="processing-screen">
+      <div className="processing-screen__content">
+        <h3 className="processing-screen__title">{UI_TEXT.PROCESSING_TITLE}</h3>
+        <p className="processing-screen__message">{UI_TEXT.PROCESSING_MESSAGE}</p>
+        <div className="processing-screen__spinner">
+          <div className="processing-screen__spinner-element"></div>
         </div>
       </div>
     </div>
   );
 
   const renderDevModeIndicator = () => (
-    <div style={{
-      fontSize: '12px',
-      color: '#666',
-      marginTop: '8px',
-      fontStyle: 'italic',
-      padding: '0 var(--spacing-sm) var(--spacing-sm)',
-      flexShrink: 0
-    }}>
+    <div className="video-processor__dev-indicator">
       {DEV_MESSAGES.SIMULATION_ACTIVE}
     </div>
   );
@@ -318,31 +311,33 @@ function VideoAudioProcessor({ onFinish }) {
   };
 
   const renderVideoScreen = () => (
-    <div className={CSS_CLASSES.VIDEO_CONTAINER}>
-      <div className="video-container">
-        <div className={CSS_CLASSES.VIDEO_BOX}>
-          <video
-            ref={videoRef}
-            className={CSS_CLASSES.VIDEO_ELEMENT}
-            autoPlay
-            muted
-            playsInline
-          />
+    <div className="video-processor">
+      <div className="video-processor__container">
+        <div className="video-processor__video-container">
+          <div className="video-processor__video-box">
+            <video
+              ref={videoRef}
+              className="video-processor__video-element"
+              autoPlay
+              muted
+              playsInline
+            />
+          </div>
         </div>
-      </div>
-      <div className={CSS_CLASSES.TRANSCRIPT_CONTAINER}>
-        <div className={CSS_CLASSES.TRANSCRIPT_BOX}>
-          <h4>{UI_TEXT.TRANSCRIPT_TITLE}</h4>
-          <div className={CSS_CLASSES.TRANSCRIPT_SCROLLABLE} ref={transcriptScrollableRef}>
-            <p
-              title="Scroll to see full transcript"
-              role="log"
-              aria-live="polite"
-              aria-label="Live interview transcript"
-            >
-              {renderTranscriptContent()}
-            </p>
-            {isTranscriptSimulationEnabled() && renderDevModeIndicator()}
+        <div className="video-processor__transcript-container">
+          <div className="video-processor__transcript-box">
+            <h4 className="video-processor__transcript-header">{UI_TEXT.TRANSCRIPT_TITLE}</h4>
+            <div className="video-processor__transcript-content" ref={transcriptScrollableRef}>
+              <p
+                title="Scroll to see full transcript"
+                role="log"
+                aria-live="polite"
+                aria-label="Live interview transcript"
+              >
+                {renderTranscriptContent()}
+              </p>
+              {isTranscriptSimulationEnabled() && renderDevModeIndicator()}
+            </div>
           </div>
         </div>
       </div>
