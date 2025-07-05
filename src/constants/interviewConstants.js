@@ -86,7 +86,9 @@ export const UI_TEXT = {
   NO_SITUATION: "No situation identified",
   NO_TASK: "No task identified",
   NO_ACTION: "No action identified",
-  NO_RESULT: "No result identified"
+  NO_RESULT: "No result identified",
+  SKIP_INTERVIEW: "Skip",
+  SKIP_CONFIRMATION: "Are you sure you want to end the interview early?"
 };
 
 // Default response messages

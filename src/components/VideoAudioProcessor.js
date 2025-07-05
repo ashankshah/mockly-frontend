@@ -260,6 +260,36 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
     }
   };
 
+  // Handle skip interview functionality
+  const handleSkipInterview = () => {
+    if (hasFinished.current) return;
+    
+    // Show confirmation dialog
+    const confirmSkip = window.confirm(UI_TEXT.SKIP_CONFIRMATION);
+    if (!confirmSkip) return;
+    
+    hasFinished.current = true;
+    setIsProcessing(true);
+    
+    // Stop recognition if active
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    
+    // Stop any media tracks
+    if (videoRef.current && videoRef.current.srcObject) {
+      MediaStreamUtils.stopTracks(videoRef.current.srcObject);
+    }
+    
+    // Clean up resources
+    cleanupResources();
+    
+    // Process the interview with whatever transcript we have so far
+    setTimeout(() => {
+      handleInterviewCompletion();
+    }, INTERVIEW_CONFIG.processingDelay);
+  };
+
   // Effects
   useEffect(() => {
     if (transcriptScrollableRef.current) {
@@ -353,6 +383,18 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
               </div>
             </div>
           </div>
+        </div>
+        
+        {/* Skip interview button */}
+        <div className="video-processor__skip-button-container">
+          <button 
+            className="button video-processor__skip-button"
+            onClick={handleSkipInterview}
+            aria-label="Skip and end interview"
+            title="Skip and end interview"
+          >
+            {UI_TEXT.SKIP_INTERVIEW} ⏭️
+          </button>
         </div>
       </div>
     </div>
