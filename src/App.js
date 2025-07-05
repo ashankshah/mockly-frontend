@@ -60,7 +60,7 @@ function App() {
 
   const renderInitialScreen = () => (
     <div className="card__content">
-      <h1 className="app__title">{UI_TEXT.APP_TITLE}</h1>
+      <h1 className="app__title">{UI_TEXT.INITIAL_TITLE}</h1>
       <InterviewSession 
         onComplete={handleInterviewComplete} 
         onStart={handleInterviewStart} 

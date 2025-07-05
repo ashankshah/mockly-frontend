@@ -72,6 +72,7 @@ export const DEV_MESSAGES = {
 export const UI_TEXT = {
   APP_TITLE: "Mockly",
   FEEDBACK_TITLE: "Your Interview Feedback",
+  INITIAL_TITLE: "Welcome to Mockly",
   START_INTERVIEW: "Start Interview",
   START_NEW_INTERVIEW: "Start New Interview",
   READY_MESSAGE: "When you're ready, click below to start your interview.",

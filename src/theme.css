@@ -83,6 +83,11 @@
   box-sizing: border-box;
 }
 
+html, body {
+  height: 100vh;
+  overflow: hidden;
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: var(--font-size-base);
@@ -128,6 +133,7 @@ p {
    ========================================================================== */
 .app {
   min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background: var(--color-background);
@@ -135,15 +141,22 @@ p {
 
 .app__main {
   flex: 1;
-  padding-top: var(--spacing-lg);
-  padding-bottom: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - var(--header-height));
+  padding: 0;
 }
 
 .app__container {
   max-width: var(--max-content-width);
-  margin: 0 auto;
-  padding: 0 var(--spacing-md);
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .app__title {
@@ -167,7 +180,8 @@ p {
 }
 
 .card {
-  margin-top: var(--spacing-md);
+  margin-top: auto;
+  margin-bottom: auto;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -194,7 +208,7 @@ p {
 
 /* Fixed height variant - scrolls if content overflows */
 .card--fixed {
-  max-width: clamp(800px, 95vw, 1200px);
+  max-width: clamp(600px, 95vw, 1200px);
   text-align: left;
   height: var(--card-max-height);
   max-height: var(--card-max-height);
@@ -207,6 +221,13 @@ p {
   min-height: min-content;
   max-height: none;
   overflow: visible;
+}
+
+.card__content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
 }
 
 .card__footer {
@@ -648,10 +669,9 @@ p {
    Feedback Report Component
    ========================================================================== */
 .feedback-report {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  flex: 1 1 auto;
   min-height: 0;
+  height: 100%;
 }
 
 .feedback-report__scores {
@@ -671,6 +691,7 @@ p {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
+  overflow-y: auto;
 }
 
 /* ==========================================================================
