@@ -126,40 +126,43 @@ function InterviewSession({ onComplete, onStart }) {
     </div>
   );
 
-  const renderQuestionSelector = () => (
-    <div className="question-selector">
-      <label htmlFor="question-select" className="question-selector__label">
-        Choose your question:
-      </label>
-      <select
-        id="question-select"
-        className="question-selector__dropdown"
-        value={selectedQuestion}
-        onChange={handleQuestionChange}
-        required
-      >
-        <option value="">Select a behavioral question...</option>
-        {INTERVIEW_QUESTIONS.map((question) => (
-          <option key={question.id} value={question.id}>
-            {question.text}
-          </option>
-        ))}
-      </select>
+  const renderQuestionSelectionGroup = () => (
+    <div className="question-selection-group">
+      <div className="question-selector">
+        <label htmlFor="question-select" className="question-selector__label">
+          Choose your question:
+        </label>
+        <select
+          id="question-select"
+          className="question-selector__dropdown"
+          value={selectedQuestion}
+          onChange={handleQuestionChange}
+          required
+        >
+          <option value="">Select a behavioral question...</option>
+          {INTERVIEW_QUESTIONS.map((question) => (
+            <option key={question.id} value={question.id}>
+              {question.text}
+            </option>
+          ))}
+        </select>
+      </div>
+      
+      {selectedQuestion && (
+        <div className="question-preview">
+          <SelectedQuestionDisplay 
+            questionId={selectedQuestion} 
+            variant="preview" 
+          />
+        </div>
+      )}
     </div>
-  );
-
-  const renderSelectedQuestion = () => (
-    <SelectedQuestionDisplay 
-      questionId={selectedQuestion} 
-      variant="preview" 
-    />
   );
 
   const renderStartButton = () => (
     <div className="interview-session">
       <p className="interview-session__message">{UI_TEXT.READY_MESSAGE}</p>
-      {renderQuestionSelector()}
-      {renderSelectedQuestion()}
+      {renderQuestionSelectionGroup()}
       {isApiDisabled() && renderDevModeWarning()}
       <button 
         className={`button ${!selectedQuestion ? 'button--disabled' : ''}`}

@@ -294,7 +294,7 @@ p {
 .interview-session {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
 }
 
 .interview-session__message {
@@ -315,13 +315,41 @@ p {
 }
 
 /* ==========================================================================
+   Question Selection Group Component
+   ========================================================================== */
+.question-selection-group {
+  background: var(--color-white);
+  border: 1px solid var(--color-primary-medium);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  margin-bottom: var(--spacing-lg);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
+}
+
+
+.question-preview {
+  border-top: 1px solid var(--color-primary-light);
+  background: var(--color-primary-light);
+  padding: 0;
+}
+
+.question-preview .selected-question {
+  background: transparent;
+  border: none;
+  margin: 0;
+  padding: var(--spacing-md);
+}
+
+/* ==========================================================================
    Question Selector Component
    ========================================================================== */
 .question-selector {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-md);
+  margin-bottom: 0;
 }
 
 .question-selector__label {
@@ -333,21 +361,21 @@ p {
 
 .question-selector__dropdown {
   padding: var(--spacing-sm) var(--spacing-md);
-  border: 2px solid var(--color-primary-medium);
-  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-primary-light);
+  border-radius: var(--border-radius-sm);
   background-color: var(--color-white);
   font-size: var(--font-size-sm);
   font-family: inherit;
   color: var(--color-text-primary);
   cursor: pointer;
   transition: all var(--transition-normal);
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
 }
 
 .question-selector__dropdown:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(59, 166, 118, 0.1);
+  box-shadow: 0 0 0 2px rgba(59, 166, 118, 0.1);
 }
 
 .question-selector__dropdown:hover:not(:focus) {
@@ -355,8 +383,8 @@ p {
 }
 
 .question-selector__dropdown:not(:focus) {
-  border-color: var(--color-primary-medium);
-  box-shadow: var(--shadow-sm);
+  border-color: var(--color-primary-light);
+  box-shadow: none;
 }
 
 .question-selector__dropdown option {
@@ -1031,6 +1059,23 @@ p {
   .video-processor__skip-button {
     font-size: calc(var(--font-size-sm) - 1px);
     padding: calc(var(--spacing-xs) - 1px) var(--spacing-sm);
+  }
+
+  /* ===== Question Selection Group Mobile Adjustments ===== */
+  .question-selection-group {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .question-selector {
+    padding: var(--spacing-sm);
+  }
+
+  .question-preview {
+    padding: 0;
+  }
+
+  .question-preview .selected-question {
+    padding: var(--spacing-sm);
   }
 }
 
