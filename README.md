@@ -1,6 +1,142 @@
 # Mockly Frontend
 
-An AI-powered mock interview application with real-time speech recognition and STAR method analysis.
+A React-based frontend for the Mockly AI Interview application that provides an interactive interview experience with real-time video processing and feedback.
+
+## Features
+
+### Interview Flow
+- **Question Selection**: Users can choose from predefined behavioral interview questions
+- **Video Recording**: Real-time video and audio capture during interviews
+- **Live Transcript**: Speech-to-text conversion with live transcript display
+- **AI Analysis**: Comprehensive feedback using STAR method evaluation
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
+
+### Question Display System
+The application now includes a sophisticated question display system that shows the selected interview question throughout the interview process:
+
+#### Components
+- **SelectedQuestionDisplay**: Reusable component for displaying interview questions
+- **Variants**: Three display variants for different contexts:
+  - `preview`: Compact display for the question selection screen
+  - `interview`: Prominent display during the interview with category information
+  - `minimal`: Minimal display for space-constrained areas
+
+#### Layout Design
+- **Non-Interfering Design**: Question display positioned above the video feed, ensuring no obstruction
+- **Responsive Layout**: Adapts to different screen sizes while maintaining video visibility
+- **Flexbox Layout**: Uses modern CSS flexbox for optimal space utilization
+- **Large Screen Optimization**: On screens ≥1024px, video and transcript display side-by-side
+
+#### Accessibility Features
+- **ARIA Labels**: Proper accessibility attributes for screen readers
+- **Semantic HTML**: Uses appropriate heading levels and semantic structure
+- **Keyboard Navigation**: Full keyboard accessibility support
+- **High Contrast Support**: Enhanced visibility in high contrast mode
+
+## Technical Implementation
+
+### Component Architecture
+```
+App.js
+├── InterviewSession.js
+│   ├── SelectedQuestionDisplay.js (preview variant)
+│   └── VideoAudioProcessor.js
+│       └── SelectedQuestionDisplay.js (interview variant)
+└── FeedbackReport.js
+```
+
+### CSS Architecture
+- **Modular CSS**: Component-specific styles with BEM methodology
+- **CSS Custom Properties**: Consistent design tokens for colors, spacing, and typography
+- **Responsive Design**: Mobile-first approach with progressive enhancement
+- **Performance Optimized**: Minimal CSS with efficient selectors
+
+### Testing Strategy
+- **Component Tests**: Unit tests for all question display variants
+- **Integration Tests**: Tests for question display integration with video processor
+- **Accessibility Tests**: Verification of ARIA attributes and semantic structure
+- **Responsive Tests**: Layout testing across different screen sizes
+
+## Development
+
+### Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
+
+### Installation
+```bash
+npm install
+```
+
+### Running the Application
+```bash
+npm start
+```
+
+### Running Tests
+```bash
+npm test
+```
+
+### Building for Production
+```bash
+npm run build
+```
+
+## Code Quality Standards
+
+### Clean Code Principles
+- **Single Responsibility**: Each component has a single, well-defined purpose
+- **Reusability**: Components are designed for reuse across different contexts
+- **Consistent Naming**: Follows established naming conventions throughout the codebase
+- **Small Functions**: Functions are kept small and focused
+- **Separation of Concerns**: Clear separation between UI and business logic
+
+### Accessibility Standards
+- **WCAG 2.1 AA Compliance**: Meets accessibility standards
+- **Screen Reader Support**: Proper ARIA labels and semantic structure
+- **Keyboard Navigation**: Full keyboard accessibility
+- **Color Contrast**: Sufficient contrast ratios for text readability
+
+### Performance Considerations
+- **Lazy Loading**: Components load only when needed
+- **Optimized Rendering**: Efficient React rendering patterns
+- **CSS Optimization**: Minimal and efficient stylesheets
+- **Bundle Size**: Optimized for fast loading times
+
+## File Structure
+
+```
+src/
+├── components/
+│   ├── SelectedQuestionDisplay.js     # Reusable question display component
+│   ├── InterviewSession.js           # Main interview flow component
+│   ├── VideoAudioProcessor.js        # Video/audio processing component
+│   ├── FeedbackReport.js             # Interview feedback display
+│   └── __tests__/                    # Component test files
+├── constants/
+│   └── interviewConstants.js         # Interview configuration and text
+├── utils/
+│   └── interviewUtils.js             # Utility functions
+├── config.js                         # Application configuration
+├── theme.css                         # Global styles and design system
+└── App.js                           # Main application component
+```
+
+## Contributing
+
+When contributing to this project, please ensure:
+
+1. **Follow Existing Patterns**: Maintain consistency with established code patterns
+2. **Write Tests**: Include tests for new functionality
+3. **Update Documentation**: Keep README and comments up to date
+4. **Accessibility**: Ensure new features meet accessibility standards
+5. **Responsive Design**: Test across different screen sizes
+6. **Performance**: Consider performance implications of changes
+
+## License
+
+This project is part of the Mockly AI Interview application.
 
 ## Features
 

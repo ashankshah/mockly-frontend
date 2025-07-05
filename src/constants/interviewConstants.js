@@ -43,51 +43,6 @@ export const APP_STATES = {
   FEEDBACK: 'feedback'
 };
 
-// CSS class names - Updated to match refactored CSS
-export const CSS_CLASSES = {
-  // Layout Components
-  CONTAINER: 'mockly-container',
-  CONTAINER_EXPANDED: 'mockly-container expanded',
-  CARD: 'mockly-card',
-  CARD_SMALL: 'mockly-card mockly-card--small',
-  CARD_LARGE: 'mockly-card mockly-card--large',
-  
-  // Interactive Elements
-  BUTTON: 'mockly-button',
-  
-  // Processing Screen
-  PROCESSING_SCREEN: 'processing-screen',
-  PROCESSING_CONTENT: 'processing-content',
-  PROCESSING_SPINNER: 'processing-spinner',
-  SPINNER: 'spinner',
-  
-  // Media Components
-  VIDEO_CONTAINER: 'video-transcript-container',
-  VIDEO_BOX: 'video-box',
-  VIDEO_ELEMENT: 'video-element',
-  TRANSCRIPT_CONTAINER: 'transcript-container',
-  TRANSCRIPT_BOX: 'transcript-box',
-  TRANSCRIPT_SCROLLABLE: 'transcript-scrollable',
-  
-  // Feedback Components
-  SCORE_TAG: 'score-tag',
-  SCORE_GREEN: 'score-tag score-green',
-  SCORE_YELLOW: 'score-tag score-yellow',
-  SCORE_RED: 'score-tag score-red',
-  TIP_SECTION: 'tip-section',
-  
-  // STAR Analysis Components
-  STAR_ANALYSIS_SECTION: 'star-analysis-section',
-  STAR_GRID: 'star-grid',
-  STAR_COMPONENT: 'star-component',
-  STAR_CONTENT: 'star-content',
-  NO_CONTENT: 'no-content',
-  
-  // Utility Classes
-  VIDEO_SECTION: 'video-section',
-  STAR_SECTION: 'star-section'
-};
-
 // Error messages
 export const ERROR_MESSAGES = {
   NO_SPEECH_DETECTED: "No speech was detected during the interview. Please try again and speak clearly.",
@@ -115,7 +70,7 @@ export const DEV_MESSAGES = {
 
 // UI text constants
 export const UI_TEXT = {
-  APP_TITLE: "Mockly AI Interview",
+  APP_TITLE: "Mockly",
   FEEDBACK_TITLE: "Your Interview Feedback",
   START_INTERVIEW: "Start Interview",
   START_NEW_INTERVIEW: "Start New Interview",
@@ -138,4 +93,48 @@ export const DEFAULT_TIPS = {
   content: "Unable to analyze content at this time.",
   voice: "Reduce pauses and maintain consistent pace.",
   face: "Improve eye contact and maintain confident posture."
-}; 
+};
+
+// Predefined behavioral interview questions
+export const INTERVIEW_QUESTIONS = [
+  {
+    id: 'leadership',
+    text: 'Tell me about a time when you had to lead a team through a difficult situation.',
+    category: 'Leadership'
+  },
+  {
+    id: 'conflict',
+    text: 'Describe a situation where you had to resolve a conflict with a colleague.',
+    category: 'Conflict Resolution'
+  },
+  {
+    id: 'challenge',
+    text: 'Give me an example of a challenging project you worked on and how you overcame obstacles.',
+    category: 'Problem Solving'
+  },
+  {
+    id: 'failure',
+    text: 'Tell me about a time when you failed at something and what you learned from it.',
+    category: 'Learning & Growth'
+  },
+  {
+    id: 'innovation',
+    text: 'Describe a time when you had to think outside the box to solve a problem.',
+    category: 'Innovation'
+  },
+  {
+    id: 'teamwork',
+    text: 'Tell me about a time when you had to work with a difficult team member.',
+    category: 'Teamwork'
+  },
+  {
+    id: 'deadline',
+    text: 'Give me an example of a time when you had to meet a tight deadline.',
+    category: 'Time Management'
+  },
+  {
+    id: 'change',
+    text: 'Describe a situation where you had to adapt to a significant change at work.',
+    category: 'Adaptability'
+  }
+]; 

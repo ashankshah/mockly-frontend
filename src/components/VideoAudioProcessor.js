@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import SelectedQuestionDisplay from './SelectedQuestionDisplay';
 import { isTranscriptSimulationEnabled, getTranscriptSimulationConfig } from '../config';
 import { 
   DEFAULT_METRICS, 
@@ -65,7 +66,7 @@ const TranscriptSimulationManager = {
   }
 };
 
-function VideoAudioProcessor({ onFinish }) {
+function VideoAudioProcessor({ onFinish, selectedQuestion }) {
   // Refs for DOM elements and state management
   const videoRef = useRef();
   const transcriptScrollableRef = useRef();
@@ -282,11 +283,13 @@ function VideoAudioProcessor({ onFinish }) {
   // Render functions
   const renderProcessingScreen = () => (
     <div className="processing-screen">
-      <div className="processing-screen__content">
-        <h3 className="processing-screen__title">{UI_TEXT.PROCESSING_TITLE}</h3>
-        <p className="processing-screen__message">{UI_TEXT.PROCESSING_MESSAGE}</p>
-        <div className="processing-screen__spinner">
-          <div className="processing-screen__spinner-element"></div>
+      <div className="card card--dynamic">
+        <div className="processing-screen__content">
+          <h3 className="processing-screen__title">{UI_TEXT.PROCESSING_TITLE}</h3>
+          <p className="processing-screen__message">{UI_TEXT.PROCESSING_MESSAGE}</p>
+          <div className="processing-screen__spinner">
+            <div className="processing-screen__spinner-element"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -313,30 +316,41 @@ function VideoAudioProcessor({ onFinish }) {
   const renderVideoScreen = () => (
     <div className="video-processor">
       <div className="video-processor__container">
-        <div className="video-processor__video-container">
-          <div className="video-processor__video-box">
-            <video
-              ref={videoRef}
-              className="video-processor__video-element"
-              autoPlay
-              muted
-              playsInline
-            />
-          </div>
+        {/* Question display at the top */}
+        <div className="video-processor__question-section">
+          <SelectedQuestionDisplay 
+            questionId={selectedQuestion} 
+            variant="interview" 
+          />
         </div>
-        <div className="video-processor__transcript-container">
-          <div className="video-processor__transcript-box">
-            <h4 className="video-processor__transcript-header">{UI_TEXT.TRANSCRIPT_TITLE}</h4>
-            <div className="video-processor__transcript-content" ref={transcriptScrollableRef}>
-              <p
-                title="Scroll to see full transcript"
-                role="log"
-                aria-live="polite"
-                aria-label="Live interview transcript"
-              >
-                {renderTranscriptContent()}
-              </p>
-              {isTranscriptSimulationEnabled() && renderDevModeIndicator()}
+        
+        {/* Video and transcript in a flex container */}
+        <div className="video-processor__content-section">
+          <div className="video-processor__video-container">
+            <div className="video-processor__video-box">
+              <video
+                ref={videoRef}
+                className="video-processor__video-element"
+                autoPlay
+                muted
+                playsInline
+              />
+            </div>
+          </div>
+          <div className="video-processor__transcript-container">
+            <div className="video-processor__transcript-box">
+              <h4 className="video-processor__transcript-header">{UI_TEXT.TRANSCRIPT_TITLE}</h4>
+              <div className="video-processor__transcript-content" ref={transcriptScrollableRef}>
+                <p
+                  title="Scroll to see full transcript"
+                  role="log"
+                  aria-live="polite"
+                  aria-label="Live interview transcript"
+                >
+                  {renderTranscriptContent()}
+                </p>
+                {isTranscriptSimulationEnabled() && renderDevModeIndicator()}
+              </div>
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import VideoAudioProcessor from './VideoAudioProcessor';
+import SelectedQuestionDisplay from './SelectedQuestionDisplay';
 import { CONFIG, isApiDisabled, getMockResponse, simulateApiDelay } from '../config';
 import { SCORE_THRESHOLDS, ErrorHandler } from '../utils/interviewUtils';
 import { UI_TEXT, DEFAULT_TIPS, DEV_MESSAGES, INTERVIEW_QUESTIONS } from '../constants/interviewConstants';
@@ -147,19 +148,12 @@ function InterviewSession({ onComplete, onStart }) {
     </div>
   );
 
-  const renderSelectedQuestion = () => {
-    if (!selectedQuestion) return null;
-    
-    const question = INTERVIEW_QUESTIONS.find(q => q.id === selectedQuestion);
-    if (!question) return null;
-
-    return (
-      <div className="selected-question">
-        <h4 className="selected-question__title">Your Question:</h4>
-        <p className="selected-question__text">{question.text}</p>
-      </div>
-    );
-  };
+  const renderSelectedQuestion = () => (
+    <SelectedQuestionDisplay 
+      questionId={selectedQuestion} 
+      variant="preview" 
+    />
+  );
 
   const renderStartButton = () => (
     <div className="interview-session">
@@ -178,7 +172,10 @@ function InterviewSession({ onComplete, onStart }) {
   );
 
   const renderVideoProcessor = () => (
-    <VideoAudioProcessor onFinish={handleInterviewFinish} />
+    <VideoAudioProcessor 
+      onFinish={handleInterviewFinish} 
+      selectedQuestion={selectedQuestion}
+    />
   );
 
   return (

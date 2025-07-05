@@ -7,7 +7,9 @@
  */
 
 import React, { useState } from 'react';
+import Header from './components/Header';
 import InterviewSession from './components/InterviewSession';
+import VideoAudioProcessor from './components/VideoAudioProcessor';
 import FeedbackReport from './components/FeedbackReport';
 import { APP_STATES, UI_TEXT } from './constants/interviewConstants';
 import './theme.css';
@@ -36,8 +38,24 @@ function App() {
   };
 
   const getCardClassName = () => {
-    const isInitialState = currentState === APP_STATES.INITIAL;
-    return isInitialState ? 'card card--small' : 'card card--large';
+    const baseClass = 'card';
+    let variantClass = '';
+
+    switch (currentState) {
+      case APP_STATES.INITIAL:
+        variantClass = 'card--dynamic';
+        break;
+      case APP_STATES.INTERVIEWING:
+        variantClass = 'card--large card--fixed';
+        break;
+      case APP_STATES.FEEDBACK:
+        variantClass = 'card--large card--fixed';
+        break;
+      default:
+        variantClass = 'card--dynamic';
+    }
+
+    return `${baseClass} ${variantClass}`;
   };
 
   const renderInitialScreen = () => (
@@ -75,10 +93,17 @@ function App() {
   };
 
   return (
-    <div className={getContainerClassName()}>
-      <div className={getCardClassName()}>
-        {renderContent()}
-      </div>
+    <div className="app">
+      <Header />
+      <main className="app__main">
+        <div className="app__container">
+          <div className={getContainerClassName()}>
+            <div className={getCardClassName()}>
+              {renderContent()}
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
