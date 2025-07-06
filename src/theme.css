@@ -496,7 +496,6 @@ p {
 .question-selector__dropdown:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(59, 166, 118, 0.1);
 }
 
 .question-selector__dropdown:hover:not(:focus) {
@@ -1847,17 +1846,20 @@ p {
   background: var(--color-background);
 }
 
+/* Permission screen now uses card--processing for consistency */
+/*
 .permission-screen .card {
-  max-width: 600px;
-  width: 100%;
+  max-width: 480px;
+  width: min(480px, 85vw);
   margin: auto;
   background: var(--color-white);
   backdrop-filter: blur(24px);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-lg);
-  padding: var(--spacing-xl);
+  padding: var(--spacing-lg);
   animation: fadeIn var(--transition-slow) ease-out;
 }
+*/
 
 .permission-screen__content {
   text-align: center;
@@ -1976,9 +1978,12 @@ p {
     padding: var(--spacing-sm);
   }
 
+  /* Now using card--processing styles instead */
+  /*
   .permission-screen .card {
     padding: var(--spacing-lg);
   }
+  */
 
   .permission-screen__title {
     font-size: var(--font-size-base);
@@ -2127,7 +2132,6 @@ p {
 
 /* Enhanced focus states */
 .button:focus-visible,
-.question-selector__dropdown:focus-visible,
 .nav-control-button:focus-visible,
 .nav-link:focus-visible {
   outline: 2px solid var(--color-primary);
@@ -2137,5 +2141,55 @@ p {
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+}
+
+/* ===== Validation Error Styles ===== */
+.interview-session__validation-error {
+  margin-top: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  display: flex;
+  align-items: center;
+  animation: fadeInUp 0.2s ease-out;
+}
+
+.question-selector__dropdown--error {
+  border-color: var(--color-error) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.question-selector__dropdown--error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* ==========================================================================
+   Icon Utility Classes
+   ========================================================================== */
+.icon-sm {
+  margin-right: 0.5rem;
+}
+
+.icon-primary {
+  color: var(--color-primary);
+}
+
+.icon-warning {
+  color: var(--color-warning);
+}
+
+.icon-success {
+  color: var(--color-success);
+}
+
+.icon-error {
+  color: var(--color-error);
+}
+
+.icon-success {
+  color: var(--color-success);
 }
 

@@ -5,24 +5,25 @@
 
 import React, { useState } from 'react';
 import SelectedQuestionDisplay from './SelectedQuestionDisplay';
-import { isApiDisabled } from '../config';
+import { DevHelpers } from '../config/devConfig';
 import { UI_TEXT, DEV_MESSAGES, INTERVIEW_QUESTIONS } from '../constants/interviewConstants';
 
-function InterviewSession({ onStart }) {
+const InterviewSession = React.memo(({ onStart }) => {
   const [selectedQuestion, setSelectedQuestion] = useState('');
+  const [validationError, setValidationError] = useState('');
 
   const handleInterviewStart = () => {
     if (!selectedQuestion) {
-      alert('Please select a question before starting the interview.');
+      setValidationError('Please select a question before starting the interview.');
       return;
     }
+    setValidationError('');
     if (onStart) onStart(selectedQuestion);
   };
 
   const handleQuestionChange = (event) => {
     setSelectedQuestion(event.target.value);
-    // Remove focus from dropdown after selection
-    event.target.blur();
+    setValidationError(''); // Clear validation error when user selects a question
   };
 
   const renderDevModeWarning = () => (
@@ -31,15 +32,24 @@ function InterviewSession({ onStart }) {
     </div>
   );
 
+  const renderValidationError = () => (
+    validationError && (
+      <div className="interview-session__validation-error">
+        <i className="fas fa-exclamation-triangle icon-sm icon-error"></i>
+        {validationError}
+      </div>
+    )
+  );
+
   const renderQuestionSelector = () => (
     <div className="question-selector">
       <label htmlFor="question-select" className="question-selector__label">
-        <i className="fas fa-question-circle" style={{ marginRight: '0.5rem', color: 'var(--color-primary)' }}></i>
+        <i className="fas fa-question-circle icon-sm icon-primary"></i>
         Choose your question:
       </label>
       <select
         id="question-select"
-        className="question-selector__dropdown"
+        className={`question-selector__dropdown ${validationError ? 'question-selector__dropdown--error' : ''}`}
         value={selectedQuestion}
         onChange={handleQuestionChange}
         required
@@ -51,6 +61,7 @@ function InterviewSession({ onStart }) {
           </option>
         ))}
       </select>
+      {renderValidationError()}
     </div>
   );
 
@@ -70,17 +81,19 @@ function InterviewSession({ onStart }) {
         {renderQuestionSelector()}
         {renderSelectedQuestion()}
       </div>
-      {isApiDisabled() && renderDevModeWarning()}
+      {DevHelpers.isApiDisabled() && renderDevModeWarning()}
       <button 
         className={`button ${!selectedQuestion ? 'button--disabled' : ''}`}
         onClick={handleInterviewStart}
         disabled={!selectedQuestion}
       >
-        <i className="fas fa-play" style={{ marginRight: '0.5rem' }}></i>
+        <i className="fas fa-play icon-sm"></i>
         {UI_TEXT.START_INTERVIEW}
       </button>
     </div>
   );
-}
+});
+
+InterviewSession.displayName = 'InterviewSession';
 
 export default InterviewSession;

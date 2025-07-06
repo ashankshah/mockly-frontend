@@ -6,13 +6,14 @@
  * @creation-date: 6/22/2025
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import InterviewSession from './components/InterviewSession';
 import VideoAudioProcessor from './components/VideoAudioProcessor';
 import FeedbackReport from './components/FeedbackReport';
 import { APP_STATES, UI_TEXT, DEFAULT_TIPS, DEV_MESSAGES } from './constants/interviewConstants';
-import { CONFIG, isApiDisabled, getMockResponse, simulateApiDelay } from './config';
+import { CONFIG } from './config';
+import { DevHelpers } from './config/devConfig';
 import { SCORE_THRESHOLDS, ErrorHandler } from './utils/interviewUtils';
 import './theme.css';
 
@@ -64,117 +65,21 @@ class InterviewApiService {
   }
 }
 
-function App() {
+const App = React.memo(() => {
   const [interviewReport, setInterviewReport] = useState(null);
   const [currentState, setCurrentState] = useState(APP_STATES.INITIAL);
   const [selectedQuestion, setSelectedQuestion] = useState('');
-  const apiService = new InterviewApiService(CONFIG);
+  
+  // Memoize apiService to prevent re-instantiation on every render
+  const apiService = useMemo(() => new InterviewApiService(CONFIG), []);
 
-  // Landing page scroll animations
-  useEffect(() => {
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
-      });
-    }, observerOptions);
-
-    // Small delay to ensure DOM is updated
-    const timer = setTimeout(() => {
-      document.querySelectorAll('.animate-on-scroll').forEach(el => {
-        observer.observe(el);
-        // If element is already in view, make it visible immediately
-        const rect = el.getBoundingClientRect();
-        if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
-          el.classList.add('visible');
-        }
-      });
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      observer.disconnect();
-    };
-  }, [currentState]); // Re-run when state changes to catch new elements
-
-  const handleMockAnalysis = async (metrics, transcript) => {
-    console.log(DEV_MESSAGES.API_DISABLED);
-    console.log('📝 Mock transcript:', transcript);
-    await simulateApiDelay();
-    setInterviewReport(getMockResponse());
-    setCurrentState(APP_STATES.FEEDBACK);
-  };
-
-  const handleComprehensiveAnalysis = async (metrics, transcript) => {
-    if (isApiDisabled()) {
-      return handleMockAnalysis(metrics, transcript);
-    }
-
-    try {
-      const analysisData = await apiService.requestComprehensiveAnalysis(metrics, transcript);
-      setInterviewReport(analysisData);
-      setCurrentState(APP_STATES.FEEDBACK);
-    } catch (error) {
-      console.error('Error fetching comprehensive analysis:', error);
-      await handleFallbackAnalysis(metrics, transcript);
-    }
-  };
-
-  const handleFallbackAnalysis = async (metrics, transcript) => {
-    if (isApiDisabled()) {
-      console.log(DEV_MESSAGES.API_DISABLED);
-      setInterviewReport(getMockResponse());
-      setCurrentState(APP_STATES.FEEDBACK);
-      return;
-    }
-
-    try {
-      const analysisData = await apiService.requestScoreSession(metrics, transcript);
-      setInterviewReport(analysisData);
-      setCurrentState(APP_STATES.FEEDBACK);
-    } catch (fallbackError) {
-      console.error('Fallback analysis also failed:', fallbackError);
-      const defaultResponse = createDefaultResponse(metrics, transcript);
-      setInterviewReport(defaultResponse);
-      setCurrentState(APP_STATES.FEEDBACK);
-    }
-  };
-
-  const handleInterviewComplete = (metrics, transcript) => {
-    setCurrentState(APP_STATES.PROCESSING);
-    // Small delay to show processing screen before starting API call
-    setTimeout(() => {
-      handleComprehensiveAnalysis(metrics, transcript);
-    }, 500);
-  };
-
-  const handleInterviewStart = (questionId) => {
-    setSelectedQuestion(questionId);
-    setCurrentState(APP_STATES.INTERVIEWING);
-  };
-
-  const handleInterviewProcessing = () => {
-    setCurrentState(APP_STATES.PROCESSING);
-  };
-
-  const handleStartNewInterview = () => {
-    setInterviewReport(null);
-    setSelectedQuestion('');
-    setCurrentState(APP_STATES.INITIAL);
-  };
-
-  const getContainerClassName = () => {
+  // Memoize class name calculations
+  const containerClassName = useMemo(() => {
     const isExpanded = currentState !== APP_STATES.INITIAL;
     return isExpanded ? 'app app--expanded' : 'app';
-  };
+  }, [currentState]);
 
-  const getCardClassName = () => {
+  const cardClassName = useMemo(() => {
     const baseClass = 'card';
     let variantClass = '';
 
@@ -195,31 +100,104 @@ function App() {
         variantClass = 'card--dynamic';
     }
 
-    return `${baseClass} ${variantClass} animate-on-scroll`;
-  };
+    // Only add animation class to landing pages, not functional interfaces
+    const shouldAnimate = currentState === APP_STATES.INITIAL || currentState === APP_STATES.FEEDBACK;
+    const animationClass = shouldAnimate ? 'animate-on-scroll' : '';
 
-  const renderInitialScreen = () => (
+    return `${baseClass} ${variantClass} ${animationClass}`.trim();
+  }, [currentState]);
+
+  // Shared analysis logic to avoid duplication
+  const processAnalysisResult = useCallback((analysisData) => {
+    setInterviewReport(analysisData);
+    setCurrentState(APP_STATES.FEEDBACK);
+  }, []);
+
+  const handleAnalysisError = useCallback((error, metrics, transcript) => {
+    DevHelpers.error('Analysis error:', error);
+    const defaultResponse = createDefaultResponse(metrics, transcript);
+    setInterviewReport(defaultResponse);
+    setCurrentState(APP_STATES.FEEDBACK);
+  }, []);
+
+  // Consolidated analysis handler
+  const handleAnalysisRequest = useCallback(async (
+    primaryEndpoint, 
+    fallbackEndpoint, 
+    metrics, 
+    transcript
+  ) => {
+    if (DevHelpers.isApiDisabled()) {
+      DevHelpers.log(DEV_MESSAGES.API_DISABLED);
+      await DevHelpers.simulateApiDelay();
+      processAnalysisResult(DevHelpers.getMockResponse());
+      return;
+    }
+
+    try {
+      const analysisData = await apiService[primaryEndpoint](metrics, transcript);
+      processAnalysisResult(analysisData);
+    } catch (error) {
+      if (fallbackEndpoint) {
+        try {
+          const fallbackData = await apiService[fallbackEndpoint](metrics, transcript);
+          processAnalysisResult(fallbackData);
+        } catch (fallbackError) {
+          handleAnalysisError(fallbackError, metrics, transcript);
+        }
+      } else {
+        handleAnalysisError(error, metrics, transcript);
+      }
+    }
+  }, [apiService, processAnalysisResult, handleAnalysisError]);
+
+  // Event handlers
+  const handleInterviewComplete = useCallback((metrics, transcript) => {
+    setCurrentState(APP_STATES.PROCESSING);
+    // Small delay to show processing screen before starting API call
+    setTimeout(() => {
+      handleAnalysisRequest(
+        'requestComprehensiveAnalysis',
+        'requestScoreSession',
+        metrics,
+        transcript
+      );
+    }, 500);
+  }, [handleAnalysisRequest]);
+
+  const handleInterviewStart = useCallback((questionId) => {
+    setSelectedQuestion(questionId);
+    setCurrentState(APP_STATES.INTERVIEWING);
+  }, []);
+
+  const handleStartNewInterview = useCallback(() => {
+    setInterviewReport(null);
+    setSelectedQuestion('');
+    setCurrentState(APP_STATES.INITIAL);
+  }, []);
+
+  // Memoized render functions
+  const renderInitialScreen = useCallback(() => (
     <div className="card__content">
       <h1 className="app__title">
-        <i className="fas fa-brain" style={{ marginRight: '0.5rem', color: 'var(--color-primary)' }}></i>
+        <i className="fas fa-brain icon-sm icon-primary"></i>
         {UI_TEXT.INITIAL_TITLE}
       </h1>
       <InterviewSession onStart={handleInterviewStart} />
     </div>
-  );
+  ), [handleInterviewStart]);
 
-  const renderInterviewScreen = () => (
+  const renderInterviewScreen = useCallback(() => (
     <div className="card__content card__content--interview">
       <VideoAudioProcessor 
         onFinish={handleInterviewComplete} 
         onEnd={handleStartNewInterview}
-        onProcessing={handleInterviewProcessing}
         selectedQuestion={selectedQuestion}
       />
     </div>
-  );
+  ), [handleInterviewComplete, handleStartNewInterview, selectedQuestion]);
 
-  const renderProcessingScreen = () => (
+  const renderProcessingScreen = useCallback(() => (
     <div className="card__content">
       <div className="processing-screen">
         <div className="processing-screen__content">
@@ -233,12 +211,12 @@ function App() {
         </div>
       </div>
     </div>
-  );
+  ), []);
 
-  const renderFeedbackScreen = () => (
+  const renderFeedbackScreen = useCallback(() => (
     <div className="card__content">
       <h1 className="app__title">
-        <i className="fas fa-chart-line" style={{ marginRight: '0.5rem', color: 'var(--color-success)' }}></i>
+        <i className="fas fa-chart-line icon-sm icon-success"></i>
         {UI_TEXT.FEEDBACK_TITLE}
       </h1>
       <FeedbackReport report={interviewReport} />
@@ -247,14 +225,15 @@ function App() {
           className="button button--centered" 
           onClick={handleStartNewInterview}
         >
-          <i className="fas fa-redo" style={{ marginRight: '0.5rem' }}></i>
+          <i className="fas fa-redo icon-sm"></i>
           {UI_TEXT.START_NEW_INTERVIEW}
         </button>
       </div>
     </div>
-  );
+  ), [interviewReport, handleStartNewInterview]);
 
-  const renderContent = () => {
+  // Memoized content renderer
+  const renderContent = useCallback(() => {
     switch (currentState) {
       case APP_STATES.INTERVIEWING:
         return renderInterviewScreen();
@@ -265,23 +244,59 @@ function App() {
       default:
         return renderInitialScreen();
     }
-  };
+  }, [currentState, renderInitialScreen, renderInterviewScreen, renderProcessingScreen, renderFeedbackScreen]);
+
+  // Optimized scroll animation effect - only run when new content is added
+  useEffect(() => {
+    // Only run for states that have new animatable content
+    if (currentState === APP_STATES.INITIAL || currentState === APP_STATES.FEEDBACK) {
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, observerOptions);
+
+      // Small delay to ensure DOM is updated
+      const timer = setTimeout(() => {
+        document.querySelectorAll('.animate-on-scroll').forEach(el => {
+          observer.observe(el);
+          // If element is already in view, make it visible immediately
+          const rect = el.getBoundingClientRect();
+          if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+            el.classList.add('visible');
+          }
+        });
+      }, 100);
+
+      return () => {
+        clearTimeout(timer);
+        observer.disconnect();
+      };
+    }
+  }, [currentState]);
 
   return (
-    <div className="app">
+    <div className={containerClassName}>
       <Header />
       <main className="app__main">
         <div className="app__container">
-          <div className={getContainerClassName()}>
-            <div className={getCardClassName()}>
-              {renderContent()}
-            </div>
+          <div className={cardClassName}>
+            {renderContent()}
           </div>
         </div>
       </main>
     </div>
   );
-}
+});
+
+App.displayName = 'App';
 
 export default App;
  

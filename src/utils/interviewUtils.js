@@ -1,7 +1,9 @@
 /**
  * Interview Utilities
- * Common functions and constants used across interview components
+ * Core utility functions for interview functionality
  */
+
+import { DevHelpers } from '../config/devConfig';
 
 // Score evaluation constants
 export const SCORE_THRESHOLDS = {
@@ -17,12 +19,6 @@ export const DEFAULT_METRICS = {
 
 // Score evaluation utility
 export const ScoreEvaluator = {
-  getScoreClass(score) {
-    if (score >= SCORE_THRESHOLDS.EXCELLENT) return "score-tag score-green";
-    if (score >= SCORE_THRESHOLDS.GOOD) return "score-tag score-yellow";
-    return "score-tag score-red";
-  },
-
   getScoreVariant(score) {
     if (score >= SCORE_THRESHOLDS.EXCELLENT) return "success";
     if (score >= SCORE_THRESHOLDS.GOOD) return "warning";
@@ -49,18 +45,13 @@ export const TranscriptValidator = {
   formatContent(transcript) {
     if (!transcript) return '';
     return transcript.trim().replace(/\s+/g, ' ');
-  },
-
-  getFinalTranscript(finalBuffer, currentTranscript) {
-    const transcript = finalBuffer.trim() || currentTranscript || "";
-    return transcript || "No speech detected.";
   }
 };
 
 // Error handling utility
 export const ErrorHandler = {
   handleApiError(error, context = 'API request') {
-    console.error(`Error in ${context}:`, error);
+    DevHelpers.error(`Error in ${context}:`, error);
     return {
       success: false,
       error: error.message || 'Unknown error occurred'
@@ -68,7 +59,7 @@ export const ErrorHandler = {
   },
 
   handleMediaError(error) {
-    console.error("Media capture error:", error);
+    DevHelpers.error("Media capture error:", error);
     return {
       success: false,
       error: 'Failed to access camera/microphone. Please check permissions.'
@@ -119,34 +110,34 @@ export const MediaStreamUtils = {
 
   setupVideoElement(videoRef, stream) {
     if (!videoRef.current) {
-      console.error('Video ref is null, cannot setup video element');
+      DevHelpers.error('Video ref is null, cannot setup video element');
       return false;
     }
 
     if (!stream) {
-      console.error('Stream is null, cannot setup video element');
+      DevHelpers.error('Stream is null, cannot setup video element');
       return false;
     }
 
     try {
-      console.log('Setting up video element with stream:', stream);
+      DevHelpers.log('Setting up video element with stream');
       videoRef.current.srcObject = stream;
       videoRef.current.muted = true;
       
       // Add event listeners for debugging
       videoRef.current.onloadedmetadata = () => {
-        console.log('Video metadata loaded:', {
+        DevHelpers.log('Video metadata loaded:', {
           videoWidth: videoRef.current.videoWidth,
           videoHeight: videoRef.current.videoHeight
         });
       };
       
       videoRef.current.oncanplay = () => {
-        console.log('Video can play');
+        DevHelpers.log('Video can play');
       };
       
       videoRef.current.onerror = (error) => {
-        console.error('Video element error:', error);
+        DevHelpers.error('Video element error:', error);
       };
       
       // Play the video
@@ -154,16 +145,16 @@ export const MediaStreamUtils = {
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            console.log('Video started playing successfully');
+            DevHelpers.log('Video started playing successfully');
           })
           .catch(error => {
-            console.error('Error starting video playback:', error);
+            DevHelpers.error('Error starting video playback:', error);
           });
       }
       
       return true;
     } catch (error) {
-      console.error('Error setting up video element:', error);
+      DevHelpers.error('Error setting up video element:', error);
       return false;
     }
   }
