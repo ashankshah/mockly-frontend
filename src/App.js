@@ -6,7 +6,7 @@
  * @creation-date: 6/22/2025
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import InterviewSession from './components/InterviewSession';
 import VideoAudioProcessor from './components/VideoAudioProcessor';
@@ -69,6 +69,39 @@ function App() {
   const [currentState, setCurrentState] = useState(APP_STATES.INITIAL);
   const [selectedQuestion, setSelectedQuestion] = useState('');
   const apiService = new InterviewApiService(CONFIG);
+
+  // Landing page scroll animations
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, observerOptions);
+
+    // Small delay to ensure DOM is updated
+    const timer = setTimeout(() => {
+      document.querySelectorAll('.animate-on-scroll').forEach(el => {
+        observer.observe(el);
+        // If element is already in view, make it visible immediately
+        const rect = el.getBoundingClientRect();
+        if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+          el.classList.add('visible');
+        }
+      });
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [currentState]); // Re-run when state changes to catch new elements
 
   const handleMockAnalysis = async (metrics, transcript) => {
     console.log(DEV_MESSAGES.API_DISABLED);
@@ -162,12 +195,15 @@ function App() {
         variantClass = 'card--dynamic';
     }
 
-    return `${baseClass} ${variantClass}`;
+    return `${baseClass} ${variantClass} animate-on-scroll`;
   };
 
   const renderInitialScreen = () => (
     <div className="card__content">
-      <h1 className="app__title">{UI_TEXT.INITIAL_TITLE}</h1>
+      <h1 className="app__title">
+        <i className="fas fa-brain" style={{ marginRight: '0.5rem', color: 'var(--color-primary)' }}></i>
+        {UI_TEXT.INITIAL_TITLE}
+      </h1>
       <InterviewSession onStart={handleInterviewStart} />
     </div>
   );
@@ -176,6 +212,7 @@ function App() {
     <div className="card__content card__content--interview">
       <VideoAudioProcessor 
         onFinish={handleInterviewComplete} 
+        onEnd={handleStartNewInterview}
         onProcessing={handleInterviewProcessing}
         selectedQuestion={selectedQuestion}
       />
@@ -186,7 +223,9 @@ function App() {
     <div className="card__content">
       <div className="processing-screen">
         <div className="processing-screen__content">
-          <h3 className="processing-screen__title">{UI_TEXT.PROCESSING_TITLE}</h3>
+          <h3 className="processing-screen__title">
+            {UI_TEXT.PROCESSING_TITLE}
+          </h3>
           <p className="processing-screen__message">{UI_TEXT.PROCESSING_MESSAGE}</p>
           <div className="processing-screen__spinner">
             <div className="processing-screen__spinner-element"></div>
@@ -198,13 +237,17 @@ function App() {
 
   const renderFeedbackScreen = () => (
     <div className="card__content">
-      <h1 className="app__title">{UI_TEXT.FEEDBACK_TITLE}</h1>
+      <h1 className="app__title">
+        <i className="fas fa-chart-line" style={{ marginRight: '0.5rem', color: 'var(--color-success)' }}></i>
+        {UI_TEXT.FEEDBACK_TITLE}
+      </h1>
       <FeedbackReport report={interviewReport} />
       <div className="card__footer">
         <button 
           className="button button--centered" 
           onClick={handleStartNewInterview}
         >
+          <i className="fas fa-redo" style={{ marginRight: '0.5rem' }}></i>
           {UI_TEXT.START_NEW_INTERVIEW}
         </button>
       </div>

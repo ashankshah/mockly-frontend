@@ -26,12 +26,15 @@ function FeedbackReport({ report }) {
   const renderScoreSection = () => (
     <div className="feedback-report__scores">
       <div className={`score score--${ScoreEvaluator.getScoreVariant(report.content_score)}`}>
+        <i className="fas fa-file-text" style={{ marginRight: '0.5rem', color: 'var(--color-primary)' }}></i>
         Content Score: {report.content_score}
       </div>
       <div className={`score score--${ScoreEvaluator.getScoreVariant(report.voice_score)}`}>
+        <i className="fas fa-microphone" style={{ marginRight: '0.5rem', color: 'var(--color-primary)' }}></i>
         Voice Score: {report.voice_score}
       </div>
       <div className={`score score--${ScoreEvaluator.getScoreVariant(report.face_score)}`}>
+        <i className="fas fa-video" style={{ marginRight: '0.5rem', color: 'var(--color-primary)' }}></i>
         Face Score: {report.face_score}
       </div>
     </div>
@@ -39,10 +42,14 @@ function FeedbackReport({ report }) {
 
   const renderTipsSection = () => (
     <div className="tips">
-      <h3 className="tips__title">{UI_TEXT.TIPS_TITLE}</h3>
+      <h3 className="tips__title">
+        <i className="fas fa-lightbulb" style={{ marginRight: '0.5rem', color: 'var(--color-warning)' }}></i>
+        {UI_TEXT.TIPS_TITLE}
+      </h3>
       <ul className="tips__list">
         {Object.entries(report.tips).map(([tipCategory, tipContent]) => (
           <li key={tipCategory} className="tips__item">
+            <i className="fas fa-check-circle" style={{ marginRight: '0.5rem', color: 'var(--color-success)' }}></i>
             <strong>{tipCategory}:</strong> {tipContent}
           </li>
         ))}
@@ -76,7 +83,10 @@ function FeedbackReport({ report }) {
 
     return (
       <div className="star-analysis">
-        <h3 className="star-analysis__title">{UI_TEXT.STAR_ANALYSIS_TITLE}</h3>
+        <h3 className="star-analysis__title">
+          <i className="fas fa-star" style={{ marginRight: '0.5rem', color: 'var(--color-warning)' }}></i>
+          {UI_TEXT.STAR_ANALYSIS_TITLE}
+        </h3>
         <div className="star-analysis__content-wrapper">
           {STAR_COMPONENTS.map(renderStarComponent)}
         </div>
@@ -91,7 +101,10 @@ function FeedbackReport({ report }) {
 
     return (
       <div className="transcript">
-        <h3 className="transcript__header">{UI_TEXT.TRANSCRIPT_TITLE_FEEDBACK}</h3>
+        <h3 className="transcript__header">
+          <i className="fas fa-file-alt" style={{ marginRight: '0.5rem', color: 'var(--color-primary)' }}></i>
+          {UI_TEXT.TRANSCRIPT_TITLE_FEEDBACK}
+        </h3>
         <div className="transcript__content">
           {report.transcript_debug}
         </div>

@@ -1,336 +1,257 @@
 # Mockly Frontend
 
-A React-based frontend for the Mockly AI Interview application that provides an interactive interview experience with real-time video processing and feedback.
+A React-based frontend for the Mockly AI Interview application that provides an interactive interview experience with real-time video processing, live transcription, and comprehensive feedback analysis.
 
-## Features
+## 🎯 Overview
 
-### Interview Flow
-- **Question Selection**: Users can choose from predefined behavioral interview questions
-- **Video Recording**: Real-time video and audio capture during interviews
-- **Live Transcript**: Speech-to-text conversion with live transcript display
-- **AI Analysis**: Comprehensive feedback using STAR method evaluation
-- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
+The Mockly frontend delivers a modern, accessible interview practice experience with real-time video capture, speech recognition, and AI-powered feedback. The application features a professional UI with natural layout flow and responsive design.
 
-### Question Display System
-The application now includes a sophisticated question display system that shows the selected interview question throughout the interview process:
+## ✨ Key Features
 
-#### Components
-- **SelectedQuestionDisplay**: Reusable component for displaying interview questions
-- **Variants**: Three display variants for different contexts:
-  - `preview`: Compact display for the question selection screen
-  - `interview`: Prominent display during the interview with category information
-  - `minimal`: Minimal display for space-constrained areas
+### 🎬 Interview Experience
+- **Live Video & Audio**: Real-time media capture with camera/audio-only modes
+- **Speech Recognition**: Live speech-to-text with scrolling transcript
+- **Smart Layout**: Natural flow layout with expandable video sidebar
+- **Question Selection**: Curated behavioral interview questions by category
+- **Skip Functionality**: Option to skip and end interviews early
 
-#### Layout Design
-- **Non-Interfering Design**: Question display positioned above the video feed, ensuring no obstruction
-- **Responsive Layout**: Adapts to different screen sizes while maintaining video visibility
-- **Flexbox Layout**: Uses modern CSS flexbox for optimal space utilization
-- **Large Screen Optimization**: On screens ≥1024px, video and transcript display side-by-side
+### 🎨 Modern UI Design
+- **Natural Layout**: Components flow directly in the app without restrictive containers
+- **Video Sidebar**: Expandable camera views with "You", "Interviewer", and "Screen Share" placeholders
+- **Main Transcript**: Large, primary content area for live transcription
+- **Professional Styling**: Clean design with glass morphism effects and consistent spacing
 
-#### Accessibility Features
-- **ARIA Labels**: Proper accessibility attributes for screen readers
-- **Semantic HTML**: Uses appropriate heading levels and semantic structure
-- **Keyboard Navigation**: Full keyboard accessibility support
-- **High Contrast Support**: Enhanced visibility in high contrast mode
+### 📱 Responsive Design
+- **Desktop**: Side-by-side video sidebar (280px) and main transcript area
+- **Mobile**: Stacked layout with video card on bottom, transcript on top
+- **Adaptive**: Smooth transitions between layouts with proper touch targets
 
-## Technical Implementation
+### ♿ Accessibility
+- **WCAG 2.1 AA Compliant**: Full accessibility support
+- **Keyboard Navigation**: Complete keyboard accessibility
+- **Screen Reader Support**: Proper ARIA labels and semantic structure
+- **High Contrast**: Enhanced visibility in high contrast mode
 
-### Component Architecture
+## 🏗️ Architecture
+
+### Component Structure
 ```
 App.js
+├── Header.js
 ├── InterviewSession.js
 │   ├── SelectedQuestionDisplay.js (preview variant)
 │   └── VideoAudioProcessor.js
-│       └── SelectedQuestionDisplay.js (interview variant)
+│       ├── SelectedQuestionDisplay.js (interview variant)
+│       └── VideoCard (expandable sidebar)
 └── FeedbackReport.js
 ```
 
+### Layout System
+- **Natural Flow**: Components lie directly in the app without container constraints
+- **Flexbox-based**: Modern CSS layout with proper responsive behavior
+- **Card Containers**: Initial, processing, and feedback screens use contained layouts
+- **Interview Screen**: Open layout with sidebar and main content areas
+
+## 🎮 Interview Flow
+
+### 1. Question Selection
+- **Question Group**: Visual grouping of question selector and selected question
+- **Category Display**: Questions organized by behavioral interview categories
+- **Preview Mode**: Compact question display for selection screen
+
+### 2. Interview Session
+- **Question Display**: Prominent question presentation at top
+- **Video Sidebar**: Expandable video card with camera controls
+  - **Collapsed**: Shows "You" video with up arrow (▲)
+  - **Expanded**: Shows "You", "Interviewer", and "Screen Share" with down arrow (▼)
+- **Main Transcript**: Large, scrollable live transcript area
+- **Controls**: Fixed skip button (bottom-right corner)
+
+### 3. Processing & Feedback
+- **Processing Screen**: Loading animation with contained layout
+- **Feedback Report**: Comprehensive STAR analysis with scoring
+- **Performance Metrics**: Detailed breakdown with improvement tips
+
+## 🛠️ Technical Implementation
+
 ### CSS Architecture
-- **Modular CSS**: Component-specific styles with BEM methodology
-- **CSS Custom Properties**: Consistent design tokens for colors, spacing, and typography
-- **Responsive Design**: Mobile-first approach with progressive enhancement
-- **Performance Optimized**: Minimal CSS with efficient selectors
+```css
+/* Natural Interview Layout */
+.interview-content-wrapper {
+  display: flex;
+  gap: var(--spacing-md);
+  min-height: 500px;
+}
 
-### Testing Strategy
-- **Component Tests**: Unit tests for all question display variants
-- **Integration Tests**: Tests for question display integration with video processor
-- **Accessibility Tests**: Verification of ARIA attributes and semantic structure
-- **Responsive Tests**: Layout testing across different screen sizes
+.interview-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+}
 
-## Development
+.interview-main {
+  flex: 1;
+}
+```
+
+### Video Card System
+- **Expandable Interface**: Toggle between 1 and 3 video views
+- **State Management**: React state for expansion control
+- **Responsive Design**: Adapts to mobile with stacked layout
+- **Accessibility**: Proper ARIA labels and keyboard navigation
+
+### Responsive Breakpoints
+- **Mobile**: `@media (max-width: 640px)` - Stacked layout
+- **Tablet**: `@media (max-width: 768px)` - Optimized spacing
+- **Desktop**: `@media (min-width: 1024px)` - Full sidebar layout
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
-
-### Installation
-```bash
-npm install
-```
-
-### Running the Application
-```bash
-npm start
-```
-
-### Running Tests
-```bash
-npm test
-```
-
-### Building for Production
-```bash
-npm run build
-```
-
-## Code Quality Standards
-
-### Clean Code Principles
-- **Single Responsibility**: Each component has a single, well-defined purpose
-- **Reusability**: Components are designed for reuse across different contexts
-- **Consistent Naming**: Follows established naming conventions throughout the codebase
-- **Small Functions**: Functions are kept small and focused
-- **Separation of Concerns**: Clear separation between UI and business logic
-
-### Accessibility Standards
-- **WCAG 2.1 AA Compliance**: Meets accessibility standards
-- **Screen Reader Support**: Proper ARIA labels and semantic structure
-- **Keyboard Navigation**: Full keyboard accessibility
-- **Color Contrast**: Sufficient contrast ratios for text readability
-
-### Performance Considerations
-- **Lazy Loading**: Components load only when needed
-- **Optimized Rendering**: Efficient React rendering patterns
-- **CSS Optimization**: Minimal and efficient stylesheets
-- **Bundle Size**: Optimized for fast loading times
-
-## File Structure
-
-```
-src/
-├── components/
-│   ├── SelectedQuestionDisplay.js     # Reusable question display component
-│   ├── InterviewSession.js           # Main interview flow component
-│   ├── VideoAudioProcessor.js        # Video/audio processing component
-│   ├── FeedbackReport.js             # Interview feedback display
-│   └── __tests__/                    # Component test files
-├── constants/
-│   └── interviewConstants.js         # Interview configuration and text
-├── utils/
-│   └── interviewUtils.js             # Utility functions
-├── config.js                         # Application configuration
-├── theme.css                         # Global styles and design system
-└── App.js                           # Main application component
-```
-
-## Contributing
-
-When contributing to this project, please ensure:
-
-1. **Follow Existing Patterns**: Maintain consistency with established code patterns
-2. **Write Tests**: Include tests for new functionality
-3. **Update Documentation**: Keep README and comments up to date
-4. **Accessibility**: Ensure new features meet accessibility standards
-5. **Responsive Design**: Test across different screen sizes
-6. **Performance**: Consider performance implications of changes
-
-## License
-
-This project is part of the Mockly AI Interview application.
-
-## Features
-
-- 🎥 Real-time video and audio capture
-- 🗣️ Live speech recognition with transcript generation
-- 🤖 AI-powered STAR method analysis
-- 📊 Comprehensive scoring and feedback
-- 🎨 Modern, professional UI with glass morphism design
-- ⚡ 10-second interview sessions with automatic processing
-
-## Quick Start
-
-### Prerequisites
-- Node.js and npm installed
-- Modern browser with Web Speech API support
-- Backend server running on port 8000
+- **Node.js** (v14 or higher)
+- **npm** or **yarn**
+- **Modern Browser** with Web Speech API support
 
 ### Installation
 ```bash
 cd mockly-frontend
 npm install
+```
+
+### Development
+```bash
 npm start
 ```
+Opens at `http://localhost:3000`
 
-The app will open at `http://localhost:3000`
-
-## Development
-
-### Disabling API Calls for Testing
-
-To disable backend API calls during development and use mock data instead:
-
-**Option 1: Environment Variable (Recommended)**
+### Production Build
 ```bash
-# Create a .env file in the frontend directory
-echo "REACT_APP_DISABLE_API=true" > .env
-
-# Or set it temporarily
-REACT_APP_DISABLE_API=true npm start
+npm run build
 ```
 
-**Option 2: Modify config.js**
-```javascript
-// In src/config.js, change:
-disableApiCalls: true  // instead of false
-```
-
-**Option 3: Quick Toggle**
-```javascript
-// In src/config.js, temporarily change:
-disableApiCalls: process.env.REACT_APP_DISABLE_API === 'true' || true,
-```
-
-### Development Mode Features
-
-When API calls are disabled:
-- ✅ **Visual indicator** - Yellow banner shows "DEV MODE"
-- ✅ **Mock data** - Realistic STAR analysis and scoring
-- ✅ **Simulated delay** - 1-second delay to mimic real API calls
-- ✅ **Console logging** - Shows when mock data is being used
-- ✅ **No backend required** - Works completely offline
-
-### Re-enabling API Calls
-
-Simply set the environment variable to false or remove it:
+### Testing
 ```bash
-# Remove the .env file or set to false
-echo "REACT_APP_DISABLE_API=false" > .env
-# Or just delete the .env file
-rm .env
+npm test
 ```
 
-## Technology Stack
+## 🔧 Configuration
 
-- **React 18** - Modern React with hooks
-- **Web Speech API** - Real-time speech recognition
-- **MediaDevices API** - Camera and microphone access
-- **CSS3** - Custom styling with modern design patterns
-- **Fetch API** - Backend communication
+### Environment Variables
+```bash
+# Disable API calls for frontend-only testing
+REACT_APP_DISABLE_API=true
+```
 
-## Project Structure
+### Config Options (`src/config.js`)
+```javascript
+export const isApiDisabled = () => {
+  return process.env.REACT_APP_DISABLE_API === 'true' || false;
+};
+```
+
+## 🧪 Development Mode
+
+### API Mocking
+When `REACT_APP_DISABLE_API=true`:
+- ✅ **Visual Indicator**: Yellow "DEV MODE" banner
+- ✅ **Mock Data**: Realistic STAR analysis and scoring
+- ✅ **Simulated Delays**: 1-second delay to mimic API calls
+- ✅ **Console Logging**: Shows when mock data is used
+- ✅ **Offline Operation**: Works without backend
+
+### Transcript Simulation
+- **Live Simulation**: Realistic typing simulation for development
+- **Configurable**: Adjustable speed and content
+- **Dev Indicators**: Clear visual feedback for development mode
+
+## 📁 File Structure
 
 ```
 src/
-├── App.js                    # Main application component
-├── index.js                  # React entry point
-├── config.js                 # Configuration and dev settings
-├── components/               # React components
-│   ├── InterviewSession.js   # Interview flow management
-│   ├── VideoAudioProcessor.js # Video/audio capture & processing
-│   └── FeedbackReport.js     # Results display with STAR analysis
-└── theme.css                 # Styling and design system
+├── components/
+│   ├── SelectedQuestionDisplay.js     # Reusable question display
+│   ├── InterviewSession.js           # Question selection flow
+│   ├── VideoAudioProcessor.js        # Interview recording & transcription
+│   ├── FeedbackReport.js             # AI feedback display
+│   ├── Header.js                     # Application header
+│   └── __tests__/                    # Component tests
+├── constants/
+│   └── interviewConstants.js         # Questions, UI text, configuration
+├── utils/
+│   └── interviewUtils.js             # Utility functions
+├── config.js                         # App configuration
+├── theme.css                         # Global styles & design system
+├── index.js                          # App entry point
+└── App.js                           # Main application component
 ```
 
-## API Integration
+## 🎨 Design System
 
-The frontend communicates with a FastAPI backend running on port 8000:
+### CSS Custom Properties
+```css
+:root {
+  --color-primary: #3BA676;
+  --color-primary-light: #E8F5E8;
+  --color-primary-medium: #B8E6CA;
+  --color-primary-dark: #2D8A5A;
+  --spacing-md: 1.5rem;
+  --border-radius-md: 12px;
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+```
 
-- **Primary Endpoint**: `POST /comprehensive-analysis` - Combined scoring and STAR analysis
-- **Fallback Endpoint**: `POST /score-session` - Basic scoring if primary fails
-- **Data Format**: JSON with metrics and transcript
+### Component Variants
+- **Cards**: `card--interview`, `card--processing`, `card--feedback`
+- **Questions**: `preview`, `interview`, `minimal` variants
+- **Buttons**: `button--disabled`, `button--full-width`
 
-## Production Ready
+## 🧪 Testing
 
-- ✅ Clean console logging (only essential error reporting)
-- ✅ Proper resource cleanup
-- ✅ Error handling with fallback mechanisms
-- ✅ Optimized performance
-- ✅ Ready for mainline deployment
+### Test Coverage
+- **Component Tests**: All major components tested
+- **Integration Tests**: Full interview flow testing
+- **Accessibility Tests**: ARIA and keyboard navigation
+- **Responsive Tests**: Layout across different screen sizes
 
-## Browser Support
-
-Requires modern browsers with support for:
-- Web Speech API
-- MediaDevices API
-- CSS Grid
-- ES6+ features
-
-## Development
-
-For detailed development information, see `meta_data_frontend` in the project root.
-
-## Development Configuration
-
-### Environment Variables
-
-Create a `.env` file in the `mockly-frontend` directory:
-
+### Running Tests
 ```bash
-# Disable backend API calls for testing (optional)
-REACT_APP_DISABLE_API=true
-
-# Enable transcript simulation for UI testing (optional)
-REACT_APP_SIMULATE_TRANSCRIPT=true
+npm test                    # Run all tests
+npm test -- --watch        # Watch mode
+npm test -- --coverage     # Coverage report
 ```
 
-### API Call Control
+## 🔄 Recent Updates
 
-To disable backend API calls during development:
+### Layout Improvements
+- ✅ **Natural Flow**: Removed restrictive containers for interview screen
+- ✅ **Video Card**: New expandable sidebar with camera view controls
+- ✅ **Arrow Logic**: Intuitive arrow direction (up for expand, down for collapse)
+- ✅ **Responsive**: Full mobile optimization with stacked layout
 
-1. Set `REACT_APP_DISABLE_API=true` in your `.env` file
-2. The app will use mock data instead of making actual API calls
-3. Useful for frontend development without backend dependencies
+### Performance Optimizations
+- ✅ **Lazy Loading**: Components load only when needed
+- ✅ **Efficient Rendering**: Optimized React patterns
+- ✅ **CSS Optimization**: Minimal, efficient stylesheets
+- ✅ **Bundle Size**: Optimized for fast loading
 
-### Transcript Simulation
+## 🤝 Contributing
 
-To simulate transcript filling during interviews:
+### Development Guidelines
+1. **Follow Existing Patterns**: Maintain consistency with established code patterns
+2. **Component Reusability**: Design components for multiple contexts
+3. **Accessibility First**: Ensure all features meet WCAG 2.1 AA standards
+4. **Responsive Design**: Test across all device sizes
+5. **Performance**: Consider performance implications of changes
 
-1. Set `REACT_APP_SIMULATE_TRANSCRIPT=true` in your `.env` file
-2. The transcript box will automatically fill with sample STAR method responses
-3. Includes interim results simulation for realistic UI testing
-4. No need to speak during interviews - perfect for UI development
+### Code Standards
+- **ESLint**: Follow established linting rules
+- **Prettier**: Consistent code formatting
+- **BEM CSS**: Block Element Modifier methodology
+- **Semantic HTML**: Use appropriate HTML elements
 
-**Simulation Features:**
-- Automatically adds sentences every 2 seconds
-- Shows interim text before finalizing each sentence
-- Simulates realistic speech recognition behavior
-- Uses sample STAR method responses
+## 📄 License
 
-**Configuration Options:**
-- Adjust timing in `src/config.js`
-- Modify sample sentences for different scenarios
-- Toggle interim results simulation
+This project is part of the Mockly AI Interview application.
 
-## Browser Compatibility
+---
 
-- Chrome/Chromium (recommended for speech recognition)
-- Firefox
-- Safari
-- Edge
-
-**Note**: Speech recognition works best in Chrome-based browsers.
-
-## Development Tips
-
-1. **Use transcript simulation** for UI testing without speaking
-2. **Disable API calls** for frontend-only development
-3. **Check browser console** for speech recognition errors
-4. **Test on different screen sizes** for responsive design
-5. **Use Chrome DevTools** for media stream debugging
-
-## Troubleshooting
-
-### Speech Recognition Issues
-- Ensure microphone permissions are granted
-- Use Chrome browser for best compatibility
-- Check console for error messages
-
-### Video/Audio Problems
-- Verify camera and microphone permissions
-- Check browser security settings
-- Try refreshing the page
-
-### API Connection Issues
-- Verify backend is running on `http://127.0.0.1:8000`
-- Check CORS settings in backend
-- Use mock data mode for frontend-only development
+**Built with React ⚛️ for modern interview practice**

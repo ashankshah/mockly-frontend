@@ -1,79 +1,56 @@
 /**
  * Header Component
- * Persistent top banner with branding and global controls
+ * Navigation header matching landing page design
  * 
  * @author: David Chung
  * @creation-date: 6/22/2025
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UI_TEXT } from '../constants/interviewConstants';
 
 function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrolled = window.scrollY > 50;
+      setIsScrolled(scrolled);
+    };
 
-  const renderMobileMenu = () => (
-    <div className={`header__menu ${isMenuOpen ? 'header__menu--open' : ''}`}>
-      <button 
-        className="header__menu-button"
-        onClick={toggleMenu}
-        aria-expanded={isMenuOpen}
-        aria-label="Toggle menu"
-      >
-        <span className="header__menu-icon"></span>
-      </button>
-      <div className="header__menu-content">
-        {renderControls()}
-      </div>
-    </div>
-  );
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-  const renderControls = () => (
-    <div className="header__controls">
-      <button 
-        className="header__control-button"
-        aria-label="Toggle audio"
-      >
-        <span className="header__control-icon header__control-icon--audio"></span>
-      </button>
-      <button 
-        className="header__control-button"
-        aria-label="Open settings"
-      >
-        <span className="header__control-icon header__control-icon--settings"></span>
-      </button>
-    </div>
+  const renderNavLinks = () => (
+    <ul className="nav-links">
+      <li><a href="#practice" className="nav-link">Practice</a></li>
+      <li><a href="#feedback" className="nav-link">Feedback</a></li>
+      <li><a href="#about" className="nav-link">About</a></li>
+    </ul>
   );
 
   return (
-    <header className="header" role="banner">
-      <div className="header__container">
-        {/* Left section for mobile menu on small screens */}
-        <div className="header__left">
-          <div className="header__mobile-controls">
-            {renderMobileMenu()}
-          </div>
+    <header className={`header ${isScrolled ? 'header--scrolled' : ''}`} role="banner">
+      <nav className="nav">
+        <a href="#" className="logo">
+          <i className="fas fa-brain"></i>
+          Mockly
+        </a>
+        
+        <div className="nav-center">
+          {renderNavLinks()}
         </div>
-
-        {/* Center section for branding */}
-        <div className="header__center">
-          <div className="header__branding">
-            <h1 className="header__title">{UI_TEXT.APP_TITLE}</h1>
-            <span className="header__subtitle">AI Interview Practice</span>
-          </div>
+        
+        <div className="nav-actions">
+          <button className="nav-control-button" aria-label="Settings">
+            <i className="fas fa-cog"></i>
+          </button>
+          <button className="nav-control-button" aria-label="Audio Settings">
+            <i className="fas fa-microphone"></i>
+          </button>
         </div>
-
-        {/* Right section for controls */}
-        <div className="header__right">
-          <div className="header__desktop-controls">
-            {renderControls()}
-          </div>
-        </div>
-      </div>
+      </nav>
     </header>
   );
 }

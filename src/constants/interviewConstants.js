@@ -88,8 +88,10 @@ export const UI_TEXT = {
   NO_TASK: "No task identified",
   NO_ACTION: "No action identified",
   NO_RESULT: "No result identified",
-  SKIP_INTERVIEW: "Skip",
-  SKIP_CONFIRMATION: "Are you sure you want to end the interview early?"
+  SKIP_INTERVIEW: "Done",
+  SKIP_CONFIRMATION: "Are you sure you want to finish the interview with your current response?",
+  END_INTERVIEW: "End",
+  END_CONFIRMATION: "Are you sure you want to end the interview early and return to question selection?"
 };
 
 // Default response messages

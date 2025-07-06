@@ -66,7 +66,7 @@ const TranscriptSimulationManager = {
   }
 };
 
-function VideoAudioProcessor({ onFinish, selectedQuestion }) {
+function VideoAudioProcessor({ onFinish, onEnd, selectedQuestion }) {
   // Refs for DOM elements and state management
   const videoRef = useRef();
   const transcriptScrollableRef = useRef();
@@ -316,13 +316,13 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
     startCapture();
   };
 
-  // Handle skip interview functionality
-  const handleSkipInterview = () => {
+  // Handle done interview functionality (same as old skip)
+  const handleDoneInterview = () => {
     if (hasFinished.current) return;
     
     // Show confirmation dialog
-    const confirmSkip = window.confirm(UI_TEXT.SKIP_CONFIRMATION);
-    if (!confirmSkip) return;
+    const confirmDone = window.confirm(UI_TEXT.SKIP_CONFIRMATION);
+    if (!confirmDone) return;
     
     hasFinished.current = true;
     
@@ -343,6 +343,35 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
     setTimeout(() => {
       handleInterviewCompletion();
     }, INTERVIEW_CONFIG.processingDelay);
+  };
+
+  // Handle end interview functionality (go back to question selection)
+  const handleEndInterview = () => {
+    if (hasFinished.current) return;
+    
+    // Show confirmation dialog
+    const confirmEnd = window.confirm(UI_TEXT.END_CONFIRMATION);
+    if (!confirmEnd) return;
+    
+    hasFinished.current = true;
+    
+    // Stop recognition if active
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    
+    // Stop any media tracks
+    if (videoRef.current && videoRef.current.srcObject) {
+      MediaStreamUtils.stopTracks(videoRef.current.srcObject);
+    }
+    
+    // Clean up resources
+    cleanupResources();
+    
+    // Go directly back to question selection without processing
+    if (onEnd) {
+      onEnd();
+    }
   };
 
   // Effects
@@ -440,8 +469,8 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
           onClick={toggleVideoCard}
           aria-label={isVideoCardExpanded ? 'Collapse video views' : 'Expand video views'}
         >
-          <span className={`video-card__arrow ${isVideoCardExpanded ? 'video-card__arrow--up' : 'video-card__arrow--down'}`}>
-            {isVideoCardExpanded ? '▲' : '▼'}
+          <span className={`video-card__arrow ${isVideoCardExpanded ? 'video-card__arrow--down' : 'video-card__arrow--up'}`}>
+            {isVideoCardExpanded ? '▼' : '▲'}
           </span>
         </button>
       </div>
@@ -543,15 +572,25 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
         </div>
       </div>
       
-      {/* Skip interview button */}
-      <div style={{ position: 'fixed', bottom: 'var(--spacing-lg)', right: 'var(--spacing-lg)', zIndex: 10 }}>
+      {/* Interview control buttons - bottom right */}
+      <div className="interview-layout__button-container">
         <button 
-          className="button interview-layout__skip-button"
-          onClick={handleSkipInterview}
-          aria-label="Skip and end interview"
-          title="Skip and end interview"
+          className="button interview-layout__end-button"
+          onClick={handleEndInterview}
+          aria-label="End interview and return to selection"
+          title="End interview early"
         >
-          {UI_TEXT.SKIP_INTERVIEW} ⏭️
+          <i className="fas fa-times" style={{ marginRight: '0.5rem' }}></i>
+          {UI_TEXT.END_INTERVIEW}
+        </button>
+        <button 
+          className="button interview-layout__done-button"
+          onClick={handleDoneInterview}
+          aria-label="Finish interview with current response"
+          title="Finish interview with current response"
+        >
+          <i className="fas fa-check" style={{ marginRight: '0.5rem' }}></i>
+          {UI_TEXT.SKIP_INTERVIEW}
         </button>
       </div>
     </>

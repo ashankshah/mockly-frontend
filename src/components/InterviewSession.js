@@ -34,6 +34,7 @@ function InterviewSession({ onStart }) {
   const renderQuestionSelector = () => (
     <div className="question-selector">
       <label htmlFor="question-select" className="question-selector__label">
+        <i className="fas fa-question-circle" style={{ marginRight: '0.5rem', color: 'var(--color-primary)' }}></i>
         Choose your question:
       </label>
       <select
@@ -54,10 +55,12 @@ function InterviewSession({ onStart }) {
   );
 
   const renderSelectedQuestion = () => (
-    <SelectedQuestionDisplay 
-      questionId={selectedQuestion} 
-      variant="preview" 
-    />
+    <div>
+      <SelectedQuestionDisplay 
+        questionId={selectedQuestion} 
+        variant="preview" 
+      />
+    </div>
   );
 
   return (
@@ -73,6 +76,7 @@ function InterviewSession({ onStart }) {
         onClick={handleInterviewStart}
         disabled={!selectedQuestion}
       >
+        <i className="fas fa-play" style={{ marginRight: '0.5rem' }}></i>
         {UI_TEXT.START_INTERVIEW}
       </button>
     </div>
