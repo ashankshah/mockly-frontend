@@ -79,6 +79,7 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
   const [permissionError, setPermissionError] = useState('');
   const [hasVideo, setHasVideo] = useState(false);
   const [isAudioOnly, setIsAudioOnly] = useState(false);
+  const [isVideoCardExpanded, setIsVideoCardExpanded] = useState(false);
   
   // Internal state refs
   const finalTranscriptBuffer = useRef('');
@@ -409,7 +410,7 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
   );
 
   const renderDevModeIndicator = () => (
-    <div className="video-processor__dev-indicator">
+    <div className="transcript-main__dev-indicator">
       {DEV_MESSAGES.SIMULATION_ACTIVE}
     </div>
   );
@@ -426,71 +427,134 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
       : `${UI_TEXT.LISTENING} ${listeningDots}`;
   };
 
-  const renderVideoScreen = () => (
-    <div className="video-processor">
-      <div className="video-processor__container">
-        {/* Question display at the top */}
-        <div className="video-processor__question-section">
-          <SelectedQuestionDisplay 
-            questionId={selectedQuestion} 
-            variant="interview" 
-          />
+  const toggleVideoCard = () => {
+    setIsVideoCardExpanded(!isVideoCardExpanded);
+  };
+
+  const renderVideoCard = () => (
+    <div className={`video-card ${isVideoCardExpanded ? 'video-card--expanded' : ''}`}>
+      <div className="video-card__header">
+        <span className="video-card__title">Camera Views</span>
+        <button 
+          className="video-card__toggle"
+          onClick={toggleVideoCard}
+          aria-label={isVideoCardExpanded ? 'Collapse video views' : 'Expand video views'}
+        >
+          <span className={`video-card__arrow ${isVideoCardExpanded ? 'video-card__arrow--up' : 'video-card__arrow--down'}`}>
+            {isVideoCardExpanded ? '▲' : '▼'}
+          </span>
+        </button>
+      </div>
+      
+      <div className="video-card__content">
+        {/* Primary video output */}
+        <div className="video-card__video-container">
+          <div className="video-card__video-label">You</div>
+          <div className="video-card__video-box">
+            {hasVideo ? (
+              <video
+                ref={videoRef}
+                className="video-card__video-element"
+                autoPlay
+                muted
+                playsInline
+              />
+            ) : (
+              <div className="video-card__audio-only-placeholder">
+                <div className="video-card__audio-only-icon">🎤</div>
+                <div className="video-card__audio-only-text">
+                  <span>Audio Only</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-        
-        {/* Video and transcript in a flex container */}
-        <div className="video-processor__content-section">
-          <div className="video-processor__video-container">
-            <div className="video-processor__video-box">
-              {hasVideo ? (
-                <video
-                  ref={videoRef}
-                  className="video-processor__video-element"
-                  autoPlay
-                  muted
-                  playsInline
-                />
-              ) : (
-                <div className="video-processor__audio-only-placeholder">
-                  <div className="video-processor__audio-only-icon">🎤</div>
-                  <div className="video-processor__audio-only-text">
-                    <h4>Audio Only Mode</h4>
-                    <p>No camera detected, but microphone is active</p>
+
+        {/* Additional video outputs - shown when expanded */}
+        {isVideoCardExpanded && (
+          <>
+            <div className="video-card__video-container">
+              <div className="video-card__video-label">Interviewer</div>
+              <div className="video-card__video-box video-card__video-box--placeholder">
+                <div className="video-card__placeholder">
+                  <div className="video-card__placeholder-icon">👤</div>
+                  <div className="video-card__placeholder-text">
+                    <span>Interviewer View</span>
+                    <small>Not available</small>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-          <div className="video-processor__transcript-container">
-            <div className="video-processor__transcript-box">
-              <h4 className="video-processor__transcript-header">{UI_TEXT.TRANSCRIPT_TITLE}</h4>
-              <div className="video-processor__transcript-content" ref={transcriptScrollableRef}>
-                <p
-                  title="Scroll to see full transcript"
-                  role="log"
-                  aria-live="polite"
-                  aria-label="Live interview transcript"
-                >
-                  {renderTranscriptContent()}
-                </p>
-                {isTranscriptSimulationEnabled() && renderDevModeIndicator()}
               </div>
             </div>
-          </div>
-        </div>
-        
-        {/* Skip interview button */}
-        <div className="video-processor__skip-button-container">
-          <button 
-            className="button video-processor__skip-button"
-            onClick={handleSkipInterview}
-            aria-label="Skip and end interview"
-            title="Skip and end interview"
-          >
-            {UI_TEXT.SKIP_INTERVIEW} ⏭️
-          </button>
-        </div>
+
+            <div className="video-card__video-container">
+              <div className="video-card__video-label">Screen Share</div>
+              <div className="video-card__video-box video-card__video-box--placeholder">
+                <div className="video-card__placeholder">
+                  <div className="video-card__placeholder-icon">🖥️</div>
+                  <div className="video-card__placeholder-text">
+                    <span>Screen Share</span>
+                    <small>Not available</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
+  );
+
+  const renderVideoScreen = () => (
+    <>
+      {/* Question display at the top */}
+      <div style={{ marginBottom: 'var(--spacing-md)' }}>
+        <SelectedQuestionDisplay 
+          questionId={selectedQuestion} 
+          variant="interview" 
+        />
+      </div>
+      
+      {/* Main content area with sidebar */}
+      <div className="interview-content-wrapper">
+        {/* Video card sidebar */}
+        <div className="interview-sidebar">
+          {renderVideoCard()}
+        </div>
+        
+        {/* Main transcript area */}
+        <div className="interview-main">
+          <div className="transcript-main">
+            <div className="transcript-main__header">
+              <h2 className="transcript-main__title">{UI_TEXT.TRANSCRIPT_TITLE}</h2>
+            </div>
+            <div className="transcript-main__content" ref={transcriptScrollableRef}>
+              <p
+                className="transcript-main__text"
+                title="Scroll to see full transcript"
+                role="log"
+                aria-live="polite"
+                aria-label="Live interview transcript"
+              >
+                {renderTranscriptContent()}
+              </p>
+              {isTranscriptSimulationEnabled() && renderDevModeIndicator()}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Skip interview button */}
+      <div style={{ position: 'fixed', bottom: 'var(--spacing-lg)', right: 'var(--spacing-lg)', zIndex: 10 }}>
+        <button 
+          className="button interview-layout__skip-button"
+          onClick={handleSkipInterview}
+          aria-label="Skip and end interview"
+          title="Skip and end interview"
+        >
+          {UI_TEXT.SKIP_INTERVIEW} ⏭️
+        </button>
+      </div>
+    </>
   );
 
   // Main render logic
