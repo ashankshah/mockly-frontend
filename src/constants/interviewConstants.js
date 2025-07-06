@@ -40,6 +40,7 @@ export const STAR_COMPONENTS = [
 export const APP_STATES = {
   INITIAL: 'initial',
   INTERVIEWING: 'interviewing',
+  PROCESSING: 'processing',
   FEEDBACK: 'feedback'
 };
 

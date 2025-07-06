@@ -74,8 +74,11 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
   // State management
   const [liveTranscript, setLiveTranscript] = useState('');
   const [listeningDots, setListeningDots] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
   const [simulationInterval, setSimulationInterval] = useState(null);
+  const [permissionState, setPermissionState] = useState('requesting'); // 'requesting', 'granted', 'denied'
+  const [permissionError, setPermissionError] = useState('');
+  const [hasVideo, setHasVideo] = useState(false);
+  const [isAudioOnly, setIsAudioOnly] = useState(false);
   
   // Internal state refs
   const finalTranscriptBuffer = useRef('');
@@ -106,8 +109,9 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
   const resetComponentState = () => {
     hasFinished.current = false;
     hasInitialized.current = false;
-    setIsProcessing(false);
     setLiveTranscript('');
+    setPermissionState('requesting');
+    setPermissionError('');
     finalTranscriptBuffer.current = '';
     transcriptRef.current = '';
   };
@@ -157,7 +161,6 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
       if (hasFinished.current) return;
       
       hasFinished.current = true;
-      setIsProcessing(true);
       
       if (recognitionRef.current) {
         recognitionRef.current.stop();
@@ -199,14 +202,15 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
   };
 
   const handleSpeechEnd = () => {
+    if (hasFinished.current) return;
+    
     if (isTranscriptSimulationEnabled()) {
       console.log(DEV_MESSAGES.NOT_AUTO_FINISHING);
       return;
     }
     
-    if (isProcessing && !hasFinished.current) {
-      hasFinished.current = true;
-      setTimeout(handleInterviewCompletion, INTERVIEW_CONFIG.processingDelay);
+    if (recognitionRef.current) {
+      recognitionRef.current.start();
     }
   };
 
@@ -225,15 +229,50 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
     setSimulationInterval(interval);
   }, [updateTranscriptWithScroll]);
 
-  // Media capture initialization
+  // Media capture initialization with better error handling
   const startCapture = async () => {
     try {
-      const stream = await MediaStreamUtils.getUserMedia({ 
-        video: true, 
-        audio: AUDIO_CONSTRAINTS
-      });
+      setPermissionState('requesting');
+      setPermissionError('');
+      setHasVideo(false);
+      setIsAudioOnly(false);
       
-      MediaStreamUtils.setupVideoElement(videoRef, stream);
+      let stream = null;
+      
+      // First try to get both video and audio
+      try {
+        stream = await MediaStreamUtils.getUserMedia({ 
+          video: true, 
+          audio: AUDIO_CONSTRAINTS
+        });
+        setHasVideo(true);
+        console.log('Successfully got video and audio');
+      } catch (videoError) {
+        console.log('Video failed, trying audio only:', videoError.message);
+        
+        // If video+audio fails, try just audio
+        try {
+          stream = await MediaStreamUtils.getUserMedia({ 
+            video: false, 
+            audio: AUDIO_CONSTRAINTS
+          });
+          setIsAudioOnly(true);
+          console.log('Successfully got audio only');
+        } catch (audioError) {
+          throw audioError; // Re-throw to be caught by outer catch
+        }
+      }
+      
+      setPermissionState('granted');
+      
+      // Only setup video if we have a video stream with tracks
+      if (stream && stream.getVideoTracks().length > 0) {
+        MediaStreamUtils.setupVideoElement(videoRef, stream);
+        setHasVideo(true);
+      } else {
+        setHasVideo(false);
+        setIsAudioOnly(true);
+      }
       
       if (!isTranscriptSimulationEnabled()) {
         const recognition = SpeechRecognitionUtils.createRecognition();
@@ -254,10 +293,26 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
       }
       
     } catch (error) {
-      const errorResult = ErrorHandler.handleMediaError(error);
-      console.error(errorResult.error);
-      handleInterviewCompletion();
+      console.error("Media capture error:", error);
+      setPermissionState('denied');
+      
+      // Set appropriate error message based on error type
+      if (error.name === 'NotAllowedError') {
+        setPermissionError('Microphone access was denied. Please allow access and try again.');
+      } else if (error.name === 'NotFoundError') {
+        setPermissionError('No microphone found. Please connect a microphone and try again.');
+      } else if (error.name === 'NotReadableError') {
+        setPermissionError('Microphone is already in use by another application.');
+      } else {
+        setPermissionError('Failed to access microphone. Please check your device and try again.');
+      }
     }
+  };
+
+  // Retry permission request
+  const retryPermissions = () => {
+    resetComponentState();
+    startCapture();
   };
 
   // Handle skip interview functionality
@@ -269,7 +324,6 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
     if (!confirmSkip) return;
     
     hasFinished.current = true;
-    setIsProcessing(true);
     
     // Stop recognition if active
     if (recognitionRef.current) {
@@ -311,15 +365,44 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
   }, []);
 
   // Render functions
-  const renderProcessingScreen = () => (
-    <div className="processing-screen">
+
+  const renderPermissionScreen = () => (
+    <div className="permission-screen">
       <div className="card card--dynamic">
-        <div className="processing-screen__content">
-          <h3 className="processing-screen__title">{UI_TEXT.PROCESSING_TITLE}</h3>
-          <p className="processing-screen__message">{UI_TEXT.PROCESSING_MESSAGE}</p>
-          <div className="processing-screen__spinner">
-            <div className="processing-screen__spinner-element"></div>
-          </div>
+        <div className="permission-screen__content">
+          <h3 className="permission-screen__title">
+            {permissionState === 'requesting' ? 'Requesting Permissions' : 'Permission Required'}
+          </h3>
+          {permissionState === 'requesting' ? (
+            <div>
+              <p className="permission-screen__message">
+                Please allow access to your microphone to start the interview. Camera access is optional.
+              </p>
+              <div className="permission-screen__spinner">
+                <div className="permission-screen__spinner-element"></div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p className="permission-screen__error">{permissionError}</p>
+              <div className="permission-screen__instructions">
+                <h4>To enable microphone access:</h4>
+                <ol>
+                  <li>Look for the microphone icon in your browser's address bar</li>
+                  <li>Click it and select "Allow"</li>
+                  <li>Or check your browser settings under Privacy & Security → Microphone</li>
+                  <li>Note: Camera is optional - the interview works with just your microphone</li>
+                  <li>Refresh the page if needed</li>
+                </ol>
+              </div>
+              <button 
+                className="button permission-screen__retry-button"
+                onClick={retryPermissions}
+              >
+                Try Again
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -358,13 +441,23 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
         <div className="video-processor__content-section">
           <div className="video-processor__video-container">
             <div className="video-processor__video-box">
-              <video
-                ref={videoRef}
-                className="video-processor__video-element"
-                autoPlay
-                muted
-                playsInline
-              />
+              {hasVideo ? (
+                <video
+                  ref={videoRef}
+                  className="video-processor__video-element"
+                  autoPlay
+                  muted
+                  playsInline
+                />
+              ) : (
+                <div className="video-processor__audio-only-placeholder">
+                  <div className="video-processor__audio-only-icon">🎤</div>
+                  <div className="video-processor__audio-only-text">
+                    <h4>Audio Only Mode</h4>
+                    <p>No camera detected, but microphone is active</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <div className="video-processor__transcript-container">
@@ -400,8 +493,9 @@ function VideoAudioProcessor({ onFinish, selectedQuestion }) {
     </div>
   );
 
-  if (isProcessing) {
-    return renderProcessingScreen();
+  // Main render logic
+  if (permissionState === 'requesting' || permissionState === 'denied') {
+    return renderPermissionScreen();
   }
 
   return renderVideoScreen();

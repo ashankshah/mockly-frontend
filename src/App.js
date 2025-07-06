@@ -11,24 +11,128 @@ import Header from './components/Header';
 import InterviewSession from './components/InterviewSession';
 import VideoAudioProcessor from './components/VideoAudioProcessor';
 import FeedbackReport from './components/FeedbackReport';
-import { APP_STATES, UI_TEXT } from './constants/interviewConstants';
+import { APP_STATES, UI_TEXT, DEFAULT_TIPS, DEV_MESSAGES } from './constants/interviewConstants';
+import { CONFIG, isApiDisabled, getMockResponse, simulateApiDelay } from './config';
+import { SCORE_THRESHOLDS, ErrorHandler } from './utils/interviewUtils';
 import './theme.css';
+
+// Default response for fallback scenarios
+const createDefaultResponse = (metrics, transcript) => ({
+  content_score: SCORE_THRESHOLDS.GOOD,
+  voice_score: metrics.voice?.score || 3.5,
+  face_score: metrics.face?.score || 4.2,
+  tips: DEFAULT_TIPS,
+  transcript_debug: transcript
+});
+
+// API service class for better separation of concerns
+class InterviewApiService {
+  constructor(config) {
+    this.config = config;
+  }
+
+  async makeRequest(endpoint, requestBody) {
+    try {
+      const response = await fetch(`${this.config.api.baseUrl}${endpoint}`, {
+        method: 'POST',
+        headers: this.config.api.headers,
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      throw ErrorHandler.handleApiError(error, `API request to ${endpoint}`);
+    }
+  }
+
+  async requestComprehensiveAnalysis(metrics, transcript) {
+    return this.makeRequest(
+      this.config.api.endpoints.comprehensiveAnalysis, 
+      { metrics, transcript }
+    );
+  }
+
+  async requestScoreSession(metrics, transcript) {
+    return this.makeRequest(
+      this.config.api.endpoints.scoreSession, 
+      { metrics, transcript }
+    );
+  }
+}
 
 function App() {
   const [interviewReport, setInterviewReport] = useState(null);
   const [currentState, setCurrentState] = useState(APP_STATES.INITIAL);
+  const [selectedQuestion, setSelectedQuestion] = useState('');
+  const apiService = new InterviewApiService(CONFIG);
 
-  const handleInterviewComplete = (report) => {
-    setInterviewReport(report);
+  const handleMockAnalysis = async (metrics, transcript) => {
+    console.log(DEV_MESSAGES.API_DISABLED);
+    console.log('📝 Mock transcript:', transcript);
+    await simulateApiDelay();
+    setInterviewReport(getMockResponse());
     setCurrentState(APP_STATES.FEEDBACK);
   };
 
-  const handleInterviewStart = () => {
+  const handleComprehensiveAnalysis = async (metrics, transcript) => {
+    if (isApiDisabled()) {
+      return handleMockAnalysis(metrics, transcript);
+    }
+
+    try {
+      const analysisData = await apiService.requestComprehensiveAnalysis(metrics, transcript);
+      setInterviewReport(analysisData);
+      setCurrentState(APP_STATES.FEEDBACK);
+    } catch (error) {
+      console.error('Error fetching comprehensive analysis:', error);
+      await handleFallbackAnalysis(metrics, transcript);
+    }
+  };
+
+  const handleFallbackAnalysis = async (metrics, transcript) => {
+    if (isApiDisabled()) {
+      console.log(DEV_MESSAGES.API_DISABLED);
+      setInterviewReport(getMockResponse());
+      setCurrentState(APP_STATES.FEEDBACK);
+      return;
+    }
+
+    try {
+      const analysisData = await apiService.requestScoreSession(metrics, transcript);
+      setInterviewReport(analysisData);
+      setCurrentState(APP_STATES.FEEDBACK);
+    } catch (fallbackError) {
+      console.error('Fallback analysis also failed:', fallbackError);
+      const defaultResponse = createDefaultResponse(metrics, transcript);
+      setInterviewReport(defaultResponse);
+      setCurrentState(APP_STATES.FEEDBACK);
+    }
+  };
+
+  const handleInterviewComplete = (metrics, transcript) => {
+    setCurrentState(APP_STATES.PROCESSING);
+    // Small delay to show processing screen before starting API call
+    setTimeout(() => {
+      handleComprehensiveAnalysis(metrics, transcript);
+    }, 500);
+  };
+
+  const handleInterviewStart = (questionId) => {
+    setSelectedQuestion(questionId);
     setCurrentState(APP_STATES.INTERVIEWING);
+  };
+
+  const handleInterviewProcessing = () => {
+    setCurrentState(APP_STATES.PROCESSING);
   };
 
   const handleStartNewInterview = () => {
     setInterviewReport(null);
+    setSelectedQuestion('');
     setCurrentState(APP_STATES.INITIAL);
   };
 
@@ -46,10 +150,13 @@ function App() {
         variantClass = 'card--dynamic';
         break;
       case APP_STATES.INTERVIEWING:
-        variantClass = 'card--large card--fixed';
+        variantClass = 'card--interview card--fixed';
+        break;
+      case APP_STATES.PROCESSING:
+        variantClass = 'card--processing card--dynamic';
         break;
       case APP_STATES.FEEDBACK:
-        variantClass = 'card--large card--fixed';
+        variantClass = 'card--feedback card--fixed';
         break;
       default:
         variantClass = 'card--dynamic';
@@ -61,10 +168,31 @@ function App() {
   const renderInitialScreen = () => (
     <div className="card__content">
       <h1 className="app__title">{UI_TEXT.INITIAL_TITLE}</h1>
-      <InterviewSession 
-        onComplete={handleInterviewComplete} 
-        onStart={handleInterviewStart} 
+      <InterviewSession onStart={handleInterviewStart} />
+    </div>
+  );
+
+  const renderInterviewScreen = () => (
+    <div className="card__content card__content--interview">
+      <VideoAudioProcessor 
+        onFinish={handleInterviewComplete} 
+        onProcessing={handleInterviewProcessing}
+        selectedQuestion={selectedQuestion}
       />
+    </div>
+  );
+
+  const renderProcessingScreen = () => (
+    <div className="card__content">
+      <div className="processing-screen">
+        <div className="processing-screen__content">
+          <h3 className="processing-screen__title">{UI_TEXT.PROCESSING_TITLE}</h3>
+          <p className="processing-screen__message">{UI_TEXT.PROCESSING_MESSAGE}</p>
+          <div className="processing-screen__spinner">
+            <div className="processing-screen__spinner-element"></div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
@@ -85,6 +213,10 @@ function App() {
 
   const renderContent = () => {
     switch (currentState) {
+      case APP_STATES.INTERVIEWING:
+        return renderInterviewScreen();
+      case APP_STATES.PROCESSING:
+        return renderProcessingScreen();
       case APP_STATES.FEEDBACK:
         return renderFeedbackScreen();
       default:
