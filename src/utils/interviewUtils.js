@@ -118,10 +118,53 @@ export const MediaStreamUtils = {
   },
 
   setupVideoElement(videoRef, stream) {
-    if (videoRef.current) {
+    if (!videoRef.current) {
+      console.error('Video ref is null, cannot setup video element');
+      return false;
+    }
+
+    if (!stream) {
+      console.error('Stream is null, cannot setup video element');
+      return false;
+    }
+
+    try {
+      console.log('Setting up video element with stream:', stream);
       videoRef.current.srcObject = stream;
       videoRef.current.muted = true;
-      videoRef.current.play();
+      
+      // Add event listeners for debugging
+      videoRef.current.onloadedmetadata = () => {
+        console.log('Video metadata loaded:', {
+          videoWidth: videoRef.current.videoWidth,
+          videoHeight: videoRef.current.videoHeight
+        });
+      };
+      
+      videoRef.current.oncanplay = () => {
+        console.log('Video can play');
+      };
+      
+      videoRef.current.onerror = (error) => {
+        console.error('Video element error:', error);
+      };
+      
+      // Play the video
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('Video started playing successfully');
+          })
+          .catch(error => {
+            console.error('Error starting video playback:', error);
+          });
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error setting up video element:', error);
+      return false;
     }
   }
 };
@@ -130,10 +173,11 @@ export const MediaStreamUtils = {
 export const SpeechRecognitionUtils = {
   createRecognition(config = {}) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
     if (!SpeechRecognition) {
       throw new Error("Speech Recognition API not supported in this browser.");
     }
-
+    
     const recognition = new SpeechRecognition();
     const defaultConfig = {
       continuous: true,
@@ -142,7 +186,9 @@ export const SpeechRecognitionUtils = {
       maxAlternatives: 1
     };
 
-    Object.assign(recognition, { ...defaultConfig, ...config });
+    const finalConfig = { ...defaultConfig, ...config };
+    Object.assign(recognition, finalConfig);
+    
     return recognition;
   },
 
@@ -152,6 +198,7 @@ export const SpeechRecognitionUtils = {
 
     for (let i = event.resultIndex; i < event.results.length; i++) {
       const transcript = event.results[i][0].transcript;
+      
       if (event.results[i].isFinal) {
         finalTranscript += transcript + ' ';
       } else {

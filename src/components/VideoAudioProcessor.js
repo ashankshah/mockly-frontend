@@ -25,7 +25,7 @@ import {
 
 // Transcript simulation manager
 const TranscriptSimulationManager = {
-  createSimulation(config, finalBuffer, updateTranscript, isFinished) {
+  createSimulation(config, transcriptRef, updateTranscript, isFinished) {
     let currentIndex = 0;
     
     const interval = setInterval(() => {
@@ -35,9 +35,9 @@ const TranscriptSimulationManager = {
       }
       
       if (config.showInterim) {
-        this.showInterimText(config, finalBuffer, updateTranscript, currentIndex, isFinished);
+        this.showInterimText(config, transcriptRef, updateTranscript, currentIndex, isFinished);
       } else {
-        this.showFinalSentence(config, finalBuffer, updateTranscript, currentIndex);
+        this.showFinalSentence(config, transcriptRef, updateTranscript, currentIndex);
       }
       currentIndex++;
     }, config.interval);
@@ -45,24 +45,24 @@ const TranscriptSimulationManager = {
     return interval;
   },
 
-  showInterimText(config, finalBuffer, updateTranscript, currentIndex, isFinished) {
+  showInterimText(config, transcriptRef, updateTranscript, currentIndex, isFinished) {
     const interimText = config.interimText;
-    const newInterimTranscript = (finalBuffer.current + (finalBuffer.current ? ' ' : '') + interimText);
+    const newInterimTranscript = (transcriptRef.current + (transcriptRef.current ? ' ' : '') + interimText);
     updateTranscript(newInterimTranscript);
     
     setTimeout(() => {
       if (isFinished()) return;
       
       const finalSentence = config.sentences[currentIndex];
-      finalBuffer.current += finalSentence + ' ';
-      updateTranscript(finalBuffer.current);
+      transcriptRef.current += finalSentence + ' ';
+      updateTranscript(transcriptRef.current);
     }, config.interimDelay);
   },
 
-  showFinalSentence(config, finalBuffer, updateTranscript, currentIndex) {
+  showFinalSentence(config, transcriptRef, updateTranscript, currentIndex) {
     const finalSentence = config.sentences[currentIndex];
-    finalBuffer.current += finalSentence + ' ';
-    updateTranscript(finalBuffer.current);
+    transcriptRef.current += finalSentence + ' ';
+    updateTranscript(transcriptRef.current);
   }
 };
 
@@ -80,9 +80,9 @@ function VideoAudioProcessor({ onFinish, onEnd, selectedQuestion }) {
   const [hasVideo, setHasVideo] = useState(false);
   const [isAudioOnly, setIsAudioOnly] = useState(false);
   const [isVideoCardExpanded, setIsVideoCardExpanded] = useState(false);
+  const [mediaStream, setMediaStream] = useState(null);
   
   // Internal state refs
-  const finalTranscriptBuffer = useRef('');
   const transcriptRef = useRef('');
   const hasFinished = useRef(false);
   const hasInitialized = useRef(false);
@@ -113,36 +113,52 @@ function VideoAudioProcessor({ onFinish, onEnd, selectedQuestion }) {
     setLiveTranscript('');
     setPermissionState('requesting');
     setPermissionError('');
-    finalTranscriptBuffer.current = '';
     transcriptRef.current = '';
   };
 
   const cleanupResources = () => {
-    const timeoutRefs = [timeoutRef, processingTimeoutRef];
-    const intervalRefs = [dotIntervalRef];
-    
-    TimeoutManager.clearAllTimeouts(timeoutRefs);
-    TimeoutManager.clearAllIntervals(intervalRefs);
-    
+    // Clear timeouts and intervals
+    if (dotIntervalRef.current) {
+      clearInterval(dotIntervalRef.current);
+      dotIntervalRef.current = null;
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (processingTimeoutRef.current) {
+      clearTimeout(processingTimeoutRef.current);
+      processingTimeoutRef.current = null;
+    }
     if (simulationInterval) {
       clearInterval(simulationInterval);
       setSimulationInterval(null);
     }
     
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
+    // Stop media tracks
+    if (mediaStream) {
+      MediaStreamUtils.stopTracks(mediaStream);
+      setMediaStream(null);
     }
   };
 
   // Interview completion handling
   const handleInterviewCompletion = () => {
-    const finalTranscript = TranscriptValidator.getFinalTranscript(
-      finalTranscriptBuffer.current, 
-      transcriptRef.current
-    );
+    // Get the complete transcript (includes both final and interim results)
+    const completeTranscript = transcriptRef.current || liveTranscript || '';
     
-    if (TranscriptValidator.isValid(finalTranscript)) {
-      onFinish(DEFAULT_METRICS, finalTranscript);
+    // Debug logging
+    console.log('Interview completion - Complete transcript:', completeTranscript);
+    console.log('Interview completion - Live transcript:', liveTranscript);
+    
+    // Simple validation - just check if we have any meaningful content
+    const hasValidTranscript = completeTranscript.trim().length > 0;
+    
+    console.log('Interview completion - Has valid transcript:', hasValidTranscript);
+    
+    if (hasValidTranscript) {
+      console.log('Interview completion - Using transcript:', completeTranscript);
+      onFinish(DEFAULT_METRICS, completeTranscript);
     } else {
       alert(ERROR_MESSAGES.NO_SPEECH_DETECTED);
       resetComponentState();
@@ -179,14 +195,22 @@ function VideoAudioProcessor({ onFinish, onEnd, selectedQuestion }) {
   const handleSpeechResult = (event) => {
     if (hasFinished.current) return;
     
-    const newFinalBuffer = SpeechRecognitionUtils.processResults(
-      event, 
-      finalTranscriptBuffer.current, 
-      updateTranscriptWithScroll
-    );
+    // Build the complete transcript from all results
+    let completeTranscript = '';
     
-    finalTranscriptBuffer.current = newFinalBuffer;
-    transcriptRef.current = finalTranscriptBuffer.current;
+    for (let i = 0; i < event.results.length; i++) {
+      const result = event.results[i];
+      const transcript = result[0].transcript;
+      completeTranscript += transcript + ' ';
+    }
+    
+    // Store the complete transcript - this includes both final and interim results
+    transcriptRef.current = completeTranscript.trim();
+    
+    // Update the live display
+    updateTranscriptWithScroll(completeTranscript.trim());
+    
+    console.log('Complete transcript:', completeTranscript.trim());
   };
 
   const handleSpeechError = (error) => {
@@ -203,6 +227,7 @@ function VideoAudioProcessor({ onFinish, onEnd, selectedQuestion }) {
   };
 
   const handleSpeechEnd = () => {
+    console.log('Speech recognition ended');
     if (hasFinished.current) return;
     
     if (isTranscriptSimulationEnabled()) {
@@ -211,6 +236,7 @@ function VideoAudioProcessor({ onFinish, onEnd, selectedQuestion }) {
     }
     
     if (recognitionRef.current) {
+      console.log('Restarting speech recognition...');
       recognitionRef.current.start();
     }
   };
@@ -222,7 +248,7 @@ function VideoAudioProcessor({ onFinish, onEnd, selectedQuestion }) {
     const config = getTranscriptSimulationConfig();
     const interval = TranscriptSimulationManager.createSimulation(
       config,
-      finalTranscriptBuffer,
+      transcriptRef,
       updateTranscriptWithScroll,
       () => hasFinished.current
     );
@@ -237,17 +263,20 @@ function VideoAudioProcessor({ onFinish, onEnd, selectedQuestion }) {
       setPermissionError('');
       setHasVideo(false);
       setIsAudioOnly(false);
+      setMediaStream(null);
       
       let stream = null;
       
       // First try to get both video and audio
       try {
+        console.log('Attempting to get video and audio...');
         stream = await MediaStreamUtils.getUserMedia({ 
           video: true, 
           audio: AUDIO_CONSTRAINTS
         });
-        setHasVideo(true);
-        console.log('Successfully got video and audio');
+        console.log('Successfully got video and audio stream:', stream);
+        console.log('Video tracks:', stream.getVideoTracks());
+        console.log('Audio tracks:', stream.getAudioTracks());
       } catch (videoError) {
         console.log('Video failed, trying audio only:', videoError.message);
         
@@ -265,12 +294,15 @@ function VideoAudioProcessor({ onFinish, onEnd, selectedQuestion }) {
       }
       
       setPermissionState('granted');
+      setMediaStream(stream);
       
-      // Only setup video if we have a video stream with tracks
+      // Check if we have video tracks and set state accordingly
       if (stream && stream.getVideoTracks().length > 0) {
-        MediaStreamUtils.setupVideoElement(videoRef, stream);
+        console.log('Video tracks found, setting hasVideo to true');
         setHasVideo(true);
+        setIsAudioOnly(false);
       } else {
+        console.log('No video tracks found, setting audio only mode');
         setHasVideo(false);
         setIsAudioOnly(true);
       }
@@ -280,6 +312,11 @@ function VideoAudioProcessor({ onFinish, onEnd, selectedQuestion }) {
         recognition.onresult = handleSpeechResult;
         recognition.onerror = handleSpeechError;
         recognition.onend = handleSpeechEnd;
+        
+        // Add essential event handlers for debugging
+        recognition.onstart = () => {
+          console.log('Speech recognition started');
+        };
         
         recognitionRef.current = recognition;
         recognition.start();
@@ -299,13 +336,13 @@ function VideoAudioProcessor({ onFinish, onEnd, selectedQuestion }) {
       
       // Set appropriate error message based on error type
       if (error.name === 'NotAllowedError') {
-        setPermissionError('Microphone access was denied. Please allow access and try again.');
+        setPermissionError('Camera/microphone access was denied. Please allow access and try again.');
       } else if (error.name === 'NotFoundError') {
-        setPermissionError('No microphone found. Please connect a microphone and try again.');
+        setPermissionError('No camera/microphone found. Please connect a device and try again.');
       } else if (error.name === 'NotReadableError') {
-        setPermissionError('Microphone is already in use by another application.');
+        setPermissionError('Camera/microphone is already in use by another application.');
       } else {
-        setPermissionError('Failed to access microphone. Please check your device and try again.');
+        setPermissionError('Failed to access camera/microphone. Please check your device and try again.');
       }
     }
   };
@@ -332,8 +369,8 @@ function VideoAudioProcessor({ onFinish, onEnd, selectedQuestion }) {
     }
     
     // Stop any media tracks
-    if (videoRef.current && videoRef.current.srcObject) {
-      MediaStreamUtils.stopTracks(videoRef.current.srcObject);
+    if (mediaStream) {
+      MediaStreamUtils.stopTracks(mediaStream);
     }
     
     // Clean up resources
@@ -361,8 +398,8 @@ function VideoAudioProcessor({ onFinish, onEnd, selectedQuestion }) {
     }
     
     // Stop any media tracks
-    if (videoRef.current && videoRef.current.srcObject) {
-      MediaStreamUtils.stopTracks(videoRef.current.srcObject);
+    if (mediaStream) {
+      MediaStreamUtils.stopTracks(mediaStream);
     }
     
     // Clean up resources
@@ -393,6 +430,31 @@ function VideoAudioProcessor({ onFinish, onEnd, selectedQuestion }) {
       cleanupResources();
     };
   }, []);
+
+  // New effect to handle video element setup when both hasVideo and mediaStream are ready
+  useEffect(() => {
+    if (hasVideo && mediaStream && mediaStream.getVideoTracks().length > 0) {
+      console.log('Setting up video element with stream:', mediaStream);
+      const success = MediaStreamUtils.setupVideoElement(videoRef, mediaStream);
+      if (success) {
+        console.log('Video element setup complete');
+        // Wait a bit for video to load and log its state
+        setTimeout(() => {
+          if (videoRef.current) {
+            console.log('Video element state:', {
+              videoWidth: videoRef.current.videoWidth,
+              videoHeight: videoRef.current.videoHeight,
+              readyState: videoRef.current.readyState,
+              paused: videoRef.current.paused,
+              srcObject: videoRef.current.srcObject
+            });
+          }
+        }, 1000);
+      } else {
+        console.error('Failed to setup video element');
+      }
+    }
+  }, [hasVideo, mediaStream]);
 
   // Render functions
 
@@ -460,78 +522,86 @@ function VideoAudioProcessor({ onFinish, onEnd, selectedQuestion }) {
     setIsVideoCardExpanded(!isVideoCardExpanded);
   };
 
-  const renderVideoCard = () => (
-    <div className={`video-card ${isVideoCardExpanded ? 'video-card--expanded' : ''}`}>
-      <div className="video-card__header">
-        <span className="video-card__title">Camera Views</span>
-        <button 
-          className="video-card__toggle"
-          onClick={toggleVideoCard}
-          aria-label={isVideoCardExpanded ? 'Collapse video views' : 'Expand video views'}
-        >
-          <span className={`video-card__arrow ${isVideoCardExpanded ? 'video-card__arrow--down' : 'video-card__arrow--up'}`}>
-            {isVideoCardExpanded ? '▼' : '▲'}
-          </span>
-        </button>
-      </div>
-      
-      <div className="video-card__content">
-        {/* Primary video output */}
-        <div className="video-card__video-container">
-          <div className="video-card__video-label">You</div>
-          <div className="video-card__video-box">
-            {hasVideo ? (
-              <video
-                ref={videoRef}
-                className="video-card__video-element"
-                autoPlay
-                muted
-                playsInline
-              />
-            ) : (
-              <div className="video-card__audio-only-placeholder">
-                <div className="video-card__audio-only-icon">🎤</div>
-                <div className="video-card__audio-only-text">
-                  <span>Audio Only</span>
-                </div>
-              </div>
-            )}
-          </div>
+  const renderVideoCard = () => {
+    console.log('Rendering video card - hasVideo:', hasVideo, 'isAudioOnly:', isAudioOnly);
+    
+    return (
+      <div className={`video-card ${isVideoCardExpanded ? 'video-card--expanded' : ''}`}>
+        <div className="video-card__header">
+          <span className="video-card__title">Camera Views</span>
+          <button 
+            className="video-card__toggle"
+            onClick={toggleVideoCard}
+            aria-label={isVideoCardExpanded ? 'Collapse video views' : 'Expand video views'}
+          >
+            <span className={`video-card__arrow ${isVideoCardExpanded ? 'video-card__arrow--down' : 'video-card__arrow--up'}`}>
+              {isVideoCardExpanded ? '▼' : '▲'}
+            </span>
+          </button>
         </div>
+        
+        <div className="video-card__content">
+          {/* Primary video output */}
+          <div className="video-card__video-container">
+            <div className="video-card__video-label">You</div>
+            <div className="video-card__video-box">
+              {hasVideo ? (
+                <video
+                  ref={videoRef}
+                  className="video-card__video-element"
+                  autoPlay
+                  muted
+                  playsInline
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onLoadedMetadata={() => console.log('Video element metadata loaded')}
+                  onPlay={() => console.log('Video element started playing')}
+                  onError={(e) => console.error('Video element error:', e)}
+                />
+              ) : (
+                <div className="video-card__audio-only-placeholder">
+                  <div className="video-card__audio-only-icon">🎤</div>
+                  <div className="video-card__audio-only-text">
+                    <span>Audio Only</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
-        {/* Additional video outputs - shown when expanded */}
-        {isVideoCardExpanded && (
-          <>
-            <div className="video-card__video-container">
-              <div className="video-card__video-label">Interviewer</div>
-              <div className="video-card__video-box video-card__video-box--placeholder">
-                <div className="video-card__placeholder">
-                  <div className="video-card__placeholder-icon">👤</div>
-                  <div className="video-card__placeholder-text">
-                    <span>Interviewer View</span>
-                    <small>Not available</small>
+          {/* Additional video outputs - shown when expanded */}
+          {isVideoCardExpanded && (
+            <>
+              <div className="video-card__video-container">
+                <div className="video-card__video-label">Interviewer</div>
+                <div className="video-card__video-box video-card__video-box--placeholder">
+                  <div className="video-card__placeholder">
+                    <div className="video-card__placeholder-icon">👤</div>
+                    <div className="video-card__placeholder-text">
+                      <span>Interviewer View</span>
+                      <small>Not available</small>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="video-card__video-container">
-              <div className="video-card__video-label">Screen Share</div>
-              <div className="video-card__video-box video-card__video-box--placeholder">
-                <div className="video-card__placeholder">
-                  <div className="video-card__placeholder-icon">🖥️</div>
-                  <div className="video-card__placeholder-text">
-                    <span>Screen Share</span>
-                    <small>Not available</small>
+              <div className="video-card__video-container">
+                <div className="video-card__video-label">Screen Share</div>
+                <div className="video-card__video-box video-card__video-box--placeholder">
+                  <div className="video-card__placeholder">
+                    <div className="video-card__placeholder-icon">🖥️</div>
+                    <div className="video-card__placeholder-text">
+                      <span>Screen Share</span>
+                      <small>Not available</small>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderVideoScreen = () => (
     <>
