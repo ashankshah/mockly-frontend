@@ -1717,7 +1717,9 @@ p {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-text-primary);
-  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -2191,5 +2193,115 @@ html {
 
 .icon-success {
   color: var(--color-success);
+}
+
+/* Authentication Header Styles */
+.nav-link {
+  background: none;
+  border: none;
+  color: inherit;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+  color: var(--color-primary);
+}
+
+.nav-link--active {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.auth-button {
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color var(--transition-normal);
+}
+
+.auth-button:hover {
+  background: var(--color-primary-dark);
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.user-profile-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs);
+  border-radius: var(--border-radius-md);
+  transition: all var(--transition-normal);
+}
+
+.user-profile-button:hover {
+  background: rgba(59, 166, 118, 0.1);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary-medium));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+}
+
+.user-name {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logout-button {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+
+.logout-button:hover {
+  background: var(--color-primary-light);
+  color: var(--color-error);
+}
+
+@media (max-width: 768px) {
+  .user-name {
+    display: none;
+  }
+  
+  .user-menu {
+    gap: var(--spacing-xs);
+  }
 }
 

@@ -91,7 +91,8 @@ export const UI_TEXT = {
   SKIP_INTERVIEW: "Done",
   SKIP_CONFIRMATION: "Are you sure you want to finish the interview with your current response?",
   END_INTERVIEW: "End",
-  END_CONFIRMATION: "Are you sure you want to end the interview early and return to question selection?"
+  END_CONFIRMATION: "Are you sure you want to end the interview early and return to question selection?",
+  NAVIGATION_CONFIRMATION: "You're currently in an interview session. Navigating away will end your current interview. Are you sure you want to continue?"
 };
 
 // Default response messages

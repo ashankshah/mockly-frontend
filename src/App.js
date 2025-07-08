@@ -11,6 +11,9 @@ import Header from './components/Header';
 import InterviewSession from './components/InterviewSession';
 import VideoAudioProcessor from './components/VideoAudioProcessor';
 import FeedbackReport from './components/FeedbackReport';
+import UserProfile from './components/UserProfile';
+import AuthModal from './components/AuthModal';
+import { AuthProvider } from './contexts/AuthContext';
 import { APP_STATES, UI_TEXT, DEFAULT_TIPS, DEV_MESSAGES } from './constants/interviewConstants';
 import { CONFIG } from './config';
 import { DevHelpers } from './config/devConfig';
@@ -65,10 +68,13 @@ class InterviewApiService {
   }
 }
 
-const App = React.memo(() => {
+const AppContent = React.memo(() => {
   const [interviewReport, setInterviewReport] = useState(null);
   const [currentState, setCurrentState] = useState(APP_STATES.INITIAL);
   const [selectedQuestion, setSelectedQuestion] = useState('');
+  const [currentView, setCurrentView] = useState('interview'); // 'interview' | 'profile'
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true); // Track if this is the first load
   
   // Memoize apiService to prevent re-instantiation on every render
   const apiService = useMemo(() => new InterviewApiService(CONFIG), []);
@@ -100,12 +106,12 @@ const App = React.memo(() => {
         variantClass = 'card--dynamic';
     }
 
-    // Only add animation class to landing pages, not functional interfaces
-    const shouldAnimate = currentState === APP_STATES.INITIAL || currentState === APP_STATES.FEEDBACK;
+    // Only add animation class on initial load, not during navigation
+    const shouldAnimate = isInitialLoad && (currentState === APP_STATES.INITIAL || currentState === APP_STATES.FEEDBACK);
     const animationClass = shouldAnimate ? 'animate-on-scroll' : '';
 
     return `${baseClass} ${variantClass} ${animationClass}`.trim();
-  }, [currentState]);
+  }, [currentState, isInitialLoad]);
 
   // Shared analysis logic to avoid duplication
   const processAnalysisResult = useCallback((analysisData) => {
@@ -168,12 +174,69 @@ const App = React.memo(() => {
   const handleInterviewStart = useCallback((questionId) => {
     setSelectedQuestion(questionId);
     setCurrentState(APP_STATES.INTERVIEWING);
+    setIsInitialLoad(false); // Mark as no longer initial load
   }, []);
 
   const handleStartNewInterview = useCallback(() => {
     setInterviewReport(null);
     setSelectedQuestion('');
     setCurrentState(APP_STATES.INITIAL);
+    setCurrentView('interview');
+  }, []);
+
+  const handleInterviewCleanup = useCallback(() => {
+    setInterviewReport(null);
+    setSelectedQuestion('');
+    setCurrentState(APP_STATES.INITIAL);
+    setIsInitialLoad(false);
+  }, []);
+
+  const handleNavigateToProfile = useCallback(() => {
+    // Check if user is in an active interview session
+    if (currentState === APP_STATES.INTERVIEWING) {
+      const confirmEndInterview = window.confirm(UI_TEXT.NAVIGATION_CONFIRMATION);
+      if (!confirmEndInterview) {
+        return; // Cancel navigation
+      }
+      
+      // Clean up interview state before navigating
+      handleInterviewCleanup();
+    } else {
+      // If not in interview, just reset state normally
+      setCurrentState(APP_STATES.INITIAL);
+      setIsInitialLoad(false);
+    }
+    
+    setCurrentView('profile');
+  }, [currentState, handleInterviewCleanup]);
+
+  const handleNavigateToInterview = useCallback(() => {
+    // Check if user is in an active interview session
+    if (currentState === APP_STATES.INTERVIEWING) {
+      const confirmEndInterview = window.confirm(UI_TEXT.NAVIGATION_CONFIRMATION);
+      if (!confirmEndInterview) {
+        return; // Cancel navigation
+      }
+      
+      // Clean up interview state before navigating
+      handleInterviewCleanup();
+    } else {
+      // If not in interview, just reset state normally
+      setCurrentState(APP_STATES.INITIAL);
+      setIsInitialLoad(false);
+    }
+    
+    setCurrentView('interview');
+    setInterviewReport(null); // Clear any previous report
+    setSelectedQuestion(''); // Clear selected question
+  }, [currentState, handleInterviewCleanup]);
+
+  const handleShowAuthModal = useCallback(() => {
+    setShowAuthModal(true);
+  }, []);
+
+  const handleCloseAuthModal = useCallback(() => {
+    setShowAuthModal(false);
   }, []);
 
   // Memoized render functions
@@ -235,6 +298,8 @@ const App = React.memo(() => {
   // Memoized content renderer
   const renderContent = useCallback(() => {
     switch (currentState) {
+      case APP_STATES.INITIAL:
+        return renderInitialScreen();
       case APP_STATES.INTERVIEWING:
         return renderInterviewScreen();
       case APP_STATES.PROCESSING:
@@ -282,19 +347,49 @@ const App = React.memo(() => {
     }
   }, [currentState]);
 
+  // Render different views based on current navigation
+  const renderMainContent = () => {
+    if (currentView === 'profile') {
+      return <UserProfile onNavigateToInterview={handleNavigateToInterview} />;
+    }
+
+    // Interview application views
+    return (
+      <div className={cardClassName}>
+        {renderContent()}
+      </div>
+    );
+  };
+
   return (
     <div className={containerClassName}>
-      <Header />
+      <Header 
+        currentView={currentView}
+        onNavigateToProfile={handleNavigateToProfile}
+        onNavigateToInterview={handleNavigateToInterview}
+        onShowAuthModal={handleShowAuthModal}
+      />
       <main className="app__main">
         <div className="app__container">
-          <div className={cardClassName}>
-            {renderContent()}
-          </div>
+          {renderMainContent()}
         </div>
       </main>
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={handleCloseAuthModal}
+      />
     </div>
   );
 });
+
+// Main App component with AuthProvider
+const App = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+};
 
 App.displayName = 'App';
 

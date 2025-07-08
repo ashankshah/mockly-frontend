@@ -7,10 +7,17 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { UI_TEXT } from '../constants/interviewConstants';
 
-function Header() {
+function Header({ 
+  currentView, 
+  onNavigateToProfile, 
+  onNavigateToInterview,
+  onShowAuthModal 
+}) {
   const [isScrolled, setIsScrolled] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,31 +31,61 @@ function Header() {
 
   const renderNavLinks = () => (
     <ul className="nav-links">
-      <li><a href="#practice" className="nav-link">Practice</a></li>
-      <li><a href="#feedback" className="nav-link">Feedback</a></li>
       <li><a href="#about" className="nav-link">About</a></li>
     </ul>
   );
 
+  const renderUserMenu = () => {
+    if (!isAuthenticated) {
+      return (
+        <button 
+          onClick={onShowAuthModal}
+          className="auth-button"
+        >
+          Sign In
+        </button>
+      );
+    }
+
+    return (
+      <div className="user-menu">
+        <button 
+          onClick={onNavigateToProfile}
+          className="user-profile-button"
+          title="View Profile"
+        >
+          <div className="user-avatar">
+            {user?.first_name?.[0] || user?.email?.[0]?.toUpperCase() || 'U'}
+          </div>
+          <span className="user-name">
+            {user?.first_name || user?.email?.split('@')[0] || 'User'}
+          </span>
+        </button>
+        <button 
+          onClick={logout}
+          className="logout-button"
+          title="Sign Out"
+        >
+          <i className="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    );
+  };
+
   return (
     <header className={`header ${isScrolled ? 'header--scrolled' : ''}`} role="banner">
       <nav className="nav">
-        <a href="#" className="logo">
+        <button onClick={onNavigateToInterview} className="logo" title="Back to Practice">
           <i className="fas fa-brain"></i>
           Mockly
-        </a>
+        </button>
         
         <div className="nav-center">
           {renderNavLinks()}
         </div>
         
         <div className="nav-actions">
-          <button className="nav-control-button" aria-label="Settings">
-            <i className="fas fa-cog"></i>
-          </button>
-          <button className="nav-control-button" aria-label="Audio Settings">
-            <i className="fas fa-microphone"></i>
-          </button>
+          {renderUserMenu()}
         </div>
       </nav>
     </header>
