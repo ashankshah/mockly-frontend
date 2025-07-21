@@ -4,8 +4,8 @@
  */
 
 import React from 'react';
-import { DevHelpers } from '../config/devConfig';
-import { UI_TEXT, DEV_MESSAGES } from '../constants/interviewConstants';
+import { DevHelpers } from '../../config/devConfig';
+import { UI_TEXT, DEV_MESSAGES } from '../../constants/interviewConstants';
 
 const TranscriptDisplay = React.memo(({ 
   transcript, 

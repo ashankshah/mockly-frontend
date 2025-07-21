@@ -5,8 +5,8 @@
 
 import React, { useState } from 'react';
 import SelectedQuestionDisplay from './SelectedQuestionDisplay';
-import { DevHelpers } from '../config/devConfig';
-import { UI_TEXT, DEV_MESSAGES, INTERVIEW_QUESTIONS } from '../constants/interviewConstants';
+import { DevHelpers } from '../../config/devConfig';
+import { UI_TEXT, DEV_MESSAGES, INTERVIEW_QUESTIONS } from '../../constants/interviewConstants';
 
 const InterviewSession = React.memo(({ onStart }) => {
   const [selectedQuestion, setSelectedQuestion] = useState('');

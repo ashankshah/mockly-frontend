@@ -160,6 +160,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateProfile,
     getAuthHeaders,
+    setUser,
+    setToken,
     isAuthenticated: !!user && !!token
   };
 

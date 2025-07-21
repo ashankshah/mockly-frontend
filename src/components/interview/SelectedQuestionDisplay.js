@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { INTERVIEW_QUESTIONS } from '../constants/interviewConstants';
+import { INTERVIEW_QUESTIONS } from '../../constants/interviewConstants';
 
 /**
  * Displays the selected interview question with proper styling and accessibility

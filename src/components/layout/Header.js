@@ -7,8 +7,9 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { UI_TEXT } from '../constants/interviewConstants';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { UI_TEXT } from '../../constants/interviewConstants';
 
 function Header({ 
   currentView, 
@@ -18,6 +19,7 @@ function Header({
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,6 +30,11 @@ function Header({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   const renderNavLinks = () => (
     <ul className="nav-links">
@@ -62,7 +69,7 @@ function Header({
           </span>
         </button>
         <button 
-          onClick={logout}
+          onClick={handleLogout}
           className="logout-button"
           title="Sign Out"
         >

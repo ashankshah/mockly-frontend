@@ -4,8 +4,8 @@
  */
 
 import React from 'react';
-import { DevHelpers } from '../config/devConfig';
-import { ERROR_MESSAGES } from '../constants/interviewConstants';
+import { DevHelpers } from '../../config/devConfig';
+import { ERROR_MESSAGES } from '../../constants/interviewConstants';
 
 const PermissionScreen = React.memo(({ 
   permissionState, 

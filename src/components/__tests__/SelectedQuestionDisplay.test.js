@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import SelectedQuestionDisplay from '../SelectedQuestionDisplay';
+import SelectedQuestionDisplay from '../interview/SelectedQuestionDisplay';
 import { INTERVIEW_QUESTIONS } from '../../constants/interviewConstants';
 
 // Mock the constants to avoid circular dependencies in tests

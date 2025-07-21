@@ -8,11 +8,11 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import VideoAudioProcessor from '../VideoAudioProcessor';
-import SelectedQuestionDisplay from '../SelectedQuestionDisplay';
+import VideoAudioProcessor from '../analysis/VideoAudioProcessor';
+import SelectedQuestionDisplay from '../interview/SelectedQuestionDisplay';
 
 // Mock the SelectedQuestionDisplay component
-jest.mock('../SelectedQuestionDisplay', () => {
+jest.mock('../interview/SelectedQuestionDisplay', () => {
   return function MockSelectedQuestionDisplay({ questionId, variant }) {
     return (
       <div data-testid="selected-question-display" data-question-id={questionId} data-variant={variant}>
