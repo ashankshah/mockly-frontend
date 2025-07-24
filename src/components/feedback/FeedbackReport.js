@@ -6,6 +6,7 @@
 import React from 'react';
 import { ScoreEvaluator } from '../../utils/interviewUtils';
 import { STAR_COMPONENTS, UI_TEXT } from '../../constants/interviewConstants';
+import './FeedbackReport.css';
 
 const FeedbackReport = React.memo(({ report }) => {
   console.log('📝 FeedbackReport received:', report);

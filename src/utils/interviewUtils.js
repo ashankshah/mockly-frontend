@@ -163,9 +163,16 @@ export const MediaStreamUtils = {
 // Speech recognition utility
 export const SpeechRecognitionUtils = {
   createRecognition(config = {}) {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    // More robust browser support check
+    const hasSpeechRecognition = 'SpeechRecognition' in window;
+    const hasWebkitSpeechRecognition = 'webkitSpeechRecognition' in window;
     
-    if (!SpeechRecognition) {
+    let SpeechRecognition;
+    if (hasSpeechRecognition) {
+      SpeechRecognition = window.SpeechRecognition;
+    } else if (hasWebkitSpeechRecognition) {
+      SpeechRecognition = window.webkitSpeechRecognition;
+    } else {
       throw new Error("Speech Recognition API not supported in this browser.");
     }
     

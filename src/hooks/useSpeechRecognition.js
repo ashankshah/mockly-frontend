@@ -69,23 +69,28 @@ export const useSpeechRecognition = () => {
       return;
     }
     
-    // Don't auto-restart if already listening or if there's an error
-    if (isListening || hasError || !recognitionRef.current) {
-      DevHelpers.log('Not auto-restarting - already listening or error state');
+    // Don't auto-restart if there's an error
+    if (hasError || !recognitionRef.current) {
+      DevHelpers.log('Not auto-restarting - error state or no recognition');
       return;
     }
     
-    // Auto-restart if no error
+    // Auto-restart if no error and we should be listening
     try {
-      recognitionRef.current.start();
-      setIsListening(true);
-      DevHelpers.log('Speech recognition restarted');
+      // Small delay to prevent rapid restart cycles
+      setTimeout(() => {
+        if (recognitionRef.current && !hasError) {
+          recognitionRef.current.start();
+          setIsListening(true);
+          DevHelpers.log('Speech recognition restarted');
+        }
+      }, 100);
     } catch (error) {
       DevHelpers.error('Failed to restart speech recognition:', error);
       setHasError(true);
       setErrorMessage(error.message);
     }
-  }, [isListening, hasError]);
+  }, [hasError]);
 
   const startListening = useCallback(() => {
     try {

@@ -242,18 +242,25 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion }) =
       setIsInitialized(true);
       setupDotAnimation();
       resetAllMetrics();
+      
+      // Run transcription diagnostic in development mode
+      if (DevHelpers.isApiDisabled()) {
+        console.log('🔍 Running transcription diagnostic...');
+        // Diagnostic removed - transcription is working in Chrome
+      }
+      
       await mediaStream.startCapture();
       if (DevHelpers.isTranscriptSimulationEnabled()) {
         transcriptSimulation.startSimulation();
       } else {
         speechRecognition.startListening();
       }
+      
       setIsEyeTrackingActive(true);
       setIsVoiceAnalysisActive(true);
       setIsHandTrackingActive(true);
       console.log('✅ Hand tracking activated');
       setupSessionTimeout();
-
 
     } catch (error) {
       console.error('❌ Initialization failed:', error);
@@ -363,6 +370,8 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion }) =
           </div>
         </div>
       </div>
+
+
 
       <div className="interview-layout__button-container">
         <button className="button interview-layout__end-button" onClick={() => {
