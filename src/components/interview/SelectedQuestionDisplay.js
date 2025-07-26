@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { INTERVIEW_QUESTIONS } from '../../constants/interviewConstants';
+import { getQuestionById } from '../../constants/interviewConstants';
 
 /**
  * Displays the selected interview question with proper styling and accessibility
@@ -24,8 +24,8 @@ function SelectedQuestionDisplay({ questionId, variant = 'preview', className = 
     return null;
   }
 
-  // Find the question object from the constants
-  const question = INTERVIEW_QUESTIONS.find(q => q.id === questionId);
+  // Find the question object from the centralized store
+  const question = getQuestionById(questionId);
   
   // Return null if question not found
   if (!question) {

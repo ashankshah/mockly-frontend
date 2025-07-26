@@ -6,11 +6,16 @@
 import React, { useState } from 'react';
 import SelectedQuestionDisplay from './SelectedQuestionDisplay';
 import { DevHelpers } from '../../config/devConfig';
-import { UI_TEXT, DEV_MESSAGES, INTERVIEW_QUESTIONS } from '../../constants/interviewConstants';
+import { UI_TEXT, DEV_MESSAGES, getAllQuestions } from '../../constants/interviewConstants';
 
-const InterviewSession = React.memo(({ onStart }) => {
-  const [selectedQuestion, setSelectedQuestion] = useState('');
+const InterviewSession = React.memo(({ onStart, initialQuestion = '' }) => {
+  const [selectedQuestion, setSelectedQuestion] = useState(initialQuestion);
   const [validationError, setValidationError] = useState('');
+
+  // Update selectedQuestion when initialQuestion prop changes
+  React.useEffect(() => {
+    setSelectedQuestion(initialQuestion);
+  }, [initialQuestion]);
 
   const handleInterviewStart = () => {
     if (!selectedQuestion) {
@@ -55,7 +60,7 @@ const InterviewSession = React.memo(({ onStart }) => {
         required
       >
         <option value="">Select a behavioral question...</option>
-        {INTERVIEW_QUESTIONS.map((question) => (
+        {getAllQuestions().map((question) => (
           <option key={question.id} value={question.id}>
             {question.text}
           </option>

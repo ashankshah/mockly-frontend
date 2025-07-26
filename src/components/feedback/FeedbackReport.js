@@ -4,11 +4,13 @@
  */
 
 import React from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { ScoreEvaluator } from '../../utils/interviewUtils';
 import { STAR_COMPONENTS, UI_TEXT } from '../../constants/interviewConstants';
 import './FeedbackReport.css';
 
 const FeedbackReport = React.memo(({ report }) => {
+  const { isAuthenticated } = useAuth();
   console.log('📝 FeedbackReport received:', report);
   
   // Extract voice data from report
@@ -52,6 +54,17 @@ const FeedbackReport = React.memo(({ report }) => {
   console.log('🎙️ Voice data:', voiceData, 'Has data:', hasVoiceData);
   console.log('👁️ Eye data:', eyeData, 'Has data:', hasEyeData);
   console.log('🤲 Hand data:', handData, 'Has data:', handData.hasData);
+
+  const renderProgressSavedIndicator = () => {
+    if (!isAuthenticated) return null;
+    
+    return (
+      <div className="progress-saved-indicator">
+        <i className="fas fa-check-circle icon-sm icon-success"></i>
+        <span>Your progress has been saved to your profile</span>
+      </div>
+    );
+  };
 
   const renderScoreSection = () => (
     <div className="feedback-report__scores">
@@ -508,6 +521,7 @@ const FeedbackReport = React.memo(({ report }) => {
 
   return (
     <div className="feedback-report">
+      {renderProgressSavedIndicator()}
       {renderScoreSection()}
       <div className="feedback-report__content">
         {renderStarSection()}

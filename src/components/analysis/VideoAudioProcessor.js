@@ -218,10 +218,12 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion }) =
 
   if (TranscriptValidator.isValid(completeTranscript)) {
     console.log('📝 STEP 3C - Calling onFinish with valid transcript');
-    onFinish(finalReport, completeTranscript);
+    console.log('🔍 selectedQuestion being passed to onFinish:', selectedQuestion);
+    onFinish(finalReport, completeTranscript, selectedQuestion);
   } else {
     console.log('📝 STEP 3C - Calling onFinish with empty transcript');
-    onFinish(finalReport, '');
+    console.log('🔍 selectedQuestion being passed to onFinish:', selectedQuestion);
+    onFinish(finalReport, '', selectedQuestion);
   }
 }, [isFinished, getCurrentTranscript, onFinish, eyeTrackingMetrics, voiceMetrics, handTrackingMetrics]);
 

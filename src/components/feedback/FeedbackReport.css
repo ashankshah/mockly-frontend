@@ -15,3 +15,22 @@
 .feedback-report::-webkit-scrollbar-track {
   background-color: #f0f0f0;
 }
+
+.progress-saved-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    border: 1px solid #16a34a;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #15803d;
+    font-weight: 500;
+}
+
+.progress-saved-indicator i {
+    color: #16a34a;
+    font-size: 16px;
+}
