@@ -3,11 +3,13 @@
  * Displays voice analysis data cleanly without excessive debug
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { ScoreEvaluator } from '../../utils/interviewUtils';
 import { STAR_COMPONENTS, UI_TEXT } from '../../constants/interviewConstants';
 import './FeedbackReport.css';
+
+import CountUp from 'react-countup';
 
 const FeedbackReport = React.memo(({ report }) => {
   const { isAuthenticated } = useAuth();
@@ -107,6 +109,133 @@ const FeedbackReport = React.memo(({ report }) => {
       {children}
     </section>
   );
+
+  
+  const DummyBar = ({ label, value }) => {
+    const [width, setWidth] = React.useState(0);
+
+    React.useEffect(() => {
+      const timeout = setTimeout(() => setWidth(value), 50);
+      return () => clearTimeout(timeout);
+    }, [value]);
+
+    return (
+      <div className="score-bar">
+        <span className="score-bar__label">{label}</span>
+        <div className="score-bar__track" style={{ position: 'relative' }}>
+          <div
+            style={{
+              width: `${width}%`,
+              height: '100%',
+              backgroundColor: '#10b981',
+              borderRadius: '9999px',
+              transition: 'width 2s ease-in-out',
+            }}
+          />
+        </div>
+        <span className="score-bar__value">{value}%</span>
+      </div>
+    );
+  };
+
+  const renderComprehensiveScoreSection = () => {
+    const scores = [
+      { label: 'Verbal', value: 85 },
+      { label: 'Visual', value: 78 },
+      { label: 'Gestures', value: 92 }
+    ];
+
+    return (
+      <SectionWrapper
+        title="Comprehensive Performance Score"
+        iconClass="fas fa-chart-line"
+        className="comprehensive-score"
+      >
+        <div className="score-section__content">
+          <div className="score-bars">
+            {scores.map((s, idx) => (
+              <DummyBar key={idx} label={s.label} value={s.value} />
+            ))}
+          </div>
+
+          <div className="score-overall">
+            <div className="score-overall__box">
+              <span className="score-overall__label">Overall Score</span>
+              <CountUp
+                start={0}
+                end={85}
+                duration={2}
+                suffix="%"
+                className="score-overall__value"
+              />
+            </div>
+          </div>
+        </div>
+      </SectionWrapper>
+    );
+  };
+
+
+
+
+  // const renderComprehensiveScoreSection = () => {
+  //   const scores = [
+  //     { label: 'Verbal', value: 85 },
+  //     { label: 'Visual', value: 78 },
+  //     { label: 'Gestures', value: 92 }
+  //   ];
+
+  //   const [animatedValues, setAnimatedValues] = React.useState(scores.map(() => 0));
+
+  //   React.useEffect(() => {
+  //     const timeout = setTimeout(() => {
+  //       setAnimatedValues(scores.map((s) => s.value));
+  //     }, 100); // Wait to ensure initial paint
+  //     return () => clearTimeout(timeout);
+  //   }, []);
+
+  //   return (
+  //     <SectionWrapper
+  //       title="Comprehensive Performance Score"
+  //       iconClass="fas fa-chart-line"
+  //       className="comprehensive-score"
+  //     >
+  //       <div className="score-section__content">
+  //         <div className="score-bars">
+  //           {scores.map((s, idx) => (
+  //             <div key={idx} className="score-bar">
+  //               <span className="score-bar__label">{s.label}</span>
+  //               <div className="score-bar__track">
+  //                 <div
+  //                   className="score-bar__fill animate-fill"
+  //                   style={{
+  //                     width: `${animatedValues[idx]}%`
+  //                   }}
+  //                 />
+  //               </div>
+  //               <span className="score-bar__value">{s.value}%</span>
+  //             </div>
+  //           ))}
+  //         </div>
+
+  //         <div className="score-overall">
+  //           <div className="score-overall__box">
+  //             <span className="score-overall__label">Overall Score</span>
+  //             <CountUp
+  //               start={0}
+  //               end={85}
+  //               duration={2}
+  //               suffix="%"
+  //               className="score-overall__value"
+  //             />
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </SectionWrapper>
+  //   );
+  // };
+
+
 
   const renderScoreSection = () => (
     <div className="feedback-report__scores">
@@ -377,7 +506,9 @@ const FeedbackReport = React.memo(({ report }) => {
   return (
     <div className="feedback-report">
       {renderProgressSavedIndicator()}
-      {renderScoreSection()}
+      {/* {renderDummyLine()} */}
+      {renderComprehensiveScoreSection()}
+      {/* {renderScoreSection()} */}
       <div className="feedback-report__content">
         {renderStarSection()}
         {renderEyeTrackingSection()}
