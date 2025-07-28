@@ -1289,7 +1289,7 @@ p {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 0px;
   overflow-y: auto;
 }
 
@@ -1348,16 +1348,16 @@ p {
    ========================================================================== */
 .star-analysis {
   flex-shrink: 0;
-  padding: var(--spacing-lg);
+  /* padding: var(--spacing-lg); */
   background: var(--color-glass);
   border-radius: var(--border-radius-md);
-  border: 1px solid rgba(59, 166, 118, 0.1);
+  /* border: 1px solid rgba(59, 166, 118, 0.1); */
   margin-bottom: var(--spacing-lg);
 }
 
 .star-analysis__title {
   font-size: var(--font-size-lg);
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 0px;
   color: var(--color-primary-dark);
   text-align: center;
 }

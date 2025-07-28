@@ -28,6 +28,7 @@
     font-size: 14px;
     color: #15803d;
     font-weight: 500;
+    width:99%;
 }
 
 .progress-saved-indicator i {
@@ -36,14 +37,18 @@
 }
 
 .feedback-section {
-  margin-bottom: 32px;
+  margin-bottom: 16px;
   padding: 16px 20px;
   border-radius: 12px;
   background-color: #ffffff;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  margin-top:0;
+  padding-top:0;
 }
 
 .feedback-section__title {
+  padding-top:0;
+  margin-top:0;
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 16px;

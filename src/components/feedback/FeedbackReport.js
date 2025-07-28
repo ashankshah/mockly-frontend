@@ -101,12 +101,14 @@ const FeedbackReport = React.memo(({ report }) => {
 
     // Shared section wrapper for uniform styling
   const SectionWrapper = ({ title, iconClass, children, className }) => (
-    <section className={`feedback-section ${className || ''}`.trim()}>
-      <h3 className="feedback-section__title">
+    <section className={`feedback-section ${className || ''}`.trim()} style = {{marginTop: '24px'}}>
+      <h3 className="feedback-section__title" style={{ paddingBottom: '0px'}}>
         <i className={`${iconClass} icon-sm icon-primary`}></i>
         {title}
       </h3>
-      {children}
+      <div style={{ marginBottom: '24px' }}> 
+        {children}
+      </div>
     </section>
   );
 
@@ -140,101 +142,42 @@ const FeedbackReport = React.memo(({ report }) => {
 
   const renderComprehensiveScoreSection = () => {
     const scores = [
-      { label: 'Verbal', value: 85 },
-      { label: 'Visual', value: 78 },
-      { label: 'Gestures', value: 92 }
+      { label: 'Content', value: 85 },
+      { label: 'Pitch', value: 78 },
+      { label: 'Nonverbal', value: 92 }
     ];
 
     return (
-      <SectionWrapper
-        title="Comprehensive Performance Score"
-        iconClass="fas fa-chart-line"
-        className="comprehensive-score"
-      >
-        <div className="score-section__content">
-          <div className="score-bars">
-            {scores.map((s, idx) => (
-              <DummyBar key={idx} label={s.label} value={s.value} />
-            ))}
-          </div>
+      <div style={{ marginTop: '40px' }}>
+        <SectionWrapper
+          title="Comprehensive Performance Score"
+          iconClass="fas fa-chart-line"
+          className="comprehensive-score"
+        >
+          <div className="score-section__content">
+            <div className="score-bars">
+              {scores.map((s, idx) => (
+                <DummyBar key={idx} label={s.label} value={s.value} />
+              ))}
+            </div>
 
-          <div className="score-overall">
-            <div className="score-overall__box">
-              <span className="score-overall__label">Overall Score</span>
-              <CountUp
-                start={0}
-                end={85}
-                duration={2}
-                suffix="%"
-                className="score-overall__value"
-              />
+            <div className="score-overall">
+              <div className="score-overall__box">
+                <span className="score-overall__label">Overall Score</span>
+                <CountUp
+                  start={0}
+                  end={85}
+                  duration={2}
+                  suffix="%"
+                  className="score-overall__value"
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </SectionWrapper>
+        </SectionWrapper>
+      </div>
     );
   };
-
-
-
-
-  // const renderComprehensiveScoreSection = () => {
-  //   const scores = [
-  //     { label: 'Verbal', value: 85 },
-  //     { label: 'Visual', value: 78 },
-  //     { label: 'Gestures', value: 92 }
-  //   ];
-
-  //   const [animatedValues, setAnimatedValues] = React.useState(scores.map(() => 0));
-
-  //   React.useEffect(() => {
-  //     const timeout = setTimeout(() => {
-  //       setAnimatedValues(scores.map((s) => s.value));
-  //     }, 100); // Wait to ensure initial paint
-  //     return () => clearTimeout(timeout);
-  //   }, []);
-
-  //   return (
-  //     <SectionWrapper
-  //       title="Comprehensive Performance Score"
-  //       iconClass="fas fa-chart-line"
-  //       className="comprehensive-score"
-  //     >
-  //       <div className="score-section__content">
-  //         <div className="score-bars">
-  //           {scores.map((s, idx) => (
-  //             <div key={idx} className="score-bar">
-  //               <span className="score-bar__label">{s.label}</span>
-  //               <div className="score-bar__track">
-  //                 <div
-  //                   className="score-bar__fill animate-fill"
-  //                   style={{
-  //                     width: `${animatedValues[idx]}%`
-  //                   }}
-  //                 />
-  //               </div>
-  //               <span className="score-bar__value">{s.value}%</span>
-  //             </div>
-  //           ))}
-  //         </div>
-
-  //         <div className="score-overall">
-  //           <div className="score-overall__box">
-  //             <span className="score-overall__label">Overall Score</span>
-  //             <CountUp
-  //               start={0}
-  //               end={85}
-  //               duration={2}
-  //               suffix="%"
-  //               className="score-overall__value"
-  //             />
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </SectionWrapper>
-  //   );
-  // };
-
 
 
   const renderScoreSection = () => (
@@ -383,9 +326,9 @@ const FeedbackReport = React.memo(({ report }) => {
 
   const renderEyeTrackingSection = () => (
     <SectionWrapper title="Computer Vision Analysis" iconClass="fas fa-eye" className="eye-tracking">
-      {!hasEyeData && (
+      {/* {!hasEyeData && (
         <span className="section-warning">(No data captured)</span>
-      )}
+      )} */}
 
       <div className="metric-grid">
         <MetricCard
@@ -422,9 +365,9 @@ const FeedbackReport = React.memo(({ report }) => {
 
     return (
       <SectionWrapper title="Hand Tracking Analysis" iconClass="fas fa-hand-paper" className="hand-tracking">
-        {!handData.hasData && (
+        {/* {!handData.hasData && (
           <span className="section-warning">(No data captured)</span>
-        )}
+        )} */}
         <div className="metric-grid">
           <MetricCard icon="fas fa-hand-rock" label="Gesture Recognition" value={`${Math.round(firstHandSpeed)}%`} />
           <MetricCard icon="fas fa-hand-point-up" label="Movement Accuracy" value={`${Math.round(firstHandError)}%`} />
@@ -452,7 +395,7 @@ const FeedbackReport = React.memo(({ report }) => {
 
     return (
       <SectionWrapper title="Voice Analysis" iconClass="fas fa-wave-square" className="voice-analysis">
-        {!hasVoiceData && <span className="section-warning">(No data captured)</span>}
+        {/* {!hasVoiceData && <span className="section-warning">(No data captured)</span>} */}
         <div className="metric-grid">
           <MetricCard icon="fas fa-volume-up" label="Avg Volume" value={`${voiceData.averageVolume}%`} color={getMetricColor(voiceData.averageVolume, 'volume')} />
           <MetricCard icon="fas fa-chart-line" label="Vol Variation" value={`${voiceData.volumeVariation}%`} color={getMetricColor(voiceData.volumeVariation, 'variation')} />
@@ -473,11 +416,11 @@ const FeedbackReport = React.memo(({ report }) => {
 
   const renderTipsSection = () => (
     <SectionWrapper title={UI_TEXT.TIPS_TITLE} iconClass="fas fa-lightbulb" className="tips-section">
-      <div className="tips">
+      <div className="tips" style={{ marginTop: '0px' }}>
         <ul className="tips__list" style={{ listStyle: 'none', paddingLeft: 0, fontSize: '16px' }}>
           {Object.entries(report?.tips || {}).map(([tipCategory, tipContent]) => (
-            <li key={tipCategory} className="tips__item" style={{ marginBottom: '8px' }}>
-              <i className="fas fa-check-circle icon-sm icon-success" style={{ marginRight: '6px' }}></i>
+            <li key={tipCategory} className="tips__item" style={{ marginBottom: '1px' }}>
+              <i className="fas fa-check-circle icon-sm icon-success" style={{ marginRight: '8px' }}></i>
               <strong>{tipCategory.charAt(0).toUpperCase() + tipCategory.slice(1)}:</strong> {tipContent}
             </li>
           ))}
