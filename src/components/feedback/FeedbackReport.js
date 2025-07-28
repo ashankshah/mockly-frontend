@@ -456,10 +456,60 @@ const FeedbackReport = React.memo(({ report }) => {
       </div>
     );
   };
-
   const renderStarSection = () => {
     const starData = report?.star_analysis || report?.starAnalysis;
-    if (!starData) return null;
+    const transcript = report?.transcript_debug;
+
+    if (!starData || !transcript) {
+      console.log("returning null");
+      return null;
+    }
+
+    // Build a regex-highlighted version of the transcript using STAR segments
+    const highlightText = (text, highlights) => {
+      let markedText = text;
+      highlights.forEach((highlight, idx) => {
+        if (!highlight || highlight.trim().length === 0) return;
+
+        const escaped = highlight.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
+        const regex = new RegExp(`(${escaped})`, 'gi');
+        const color = ['#facc15', '#34d399', '#60a5fa', '#f87171'][idx]; // yellow, green, blue, red
+        markedText = markedText.replace(
+          regex,
+          `<mark style="background:${color};padding:2px;border-radius:4px;">$1</mark>`
+        );
+      });
+      return markedText;
+    };
+
+    const highlights = [
+      ...(starData?.situation || []),
+      ...(starData?.task || []),
+      ...(starData?.action || []),
+      ...(starData?.result || []),
+    ];
+
+    // Feedback for missing components
+    const feedback = [];
+    if (!starData.situation || starData.situation.length === 0) {
+      feedback.push('Focus on making the <strong>Situation</strong> clearer.');
+    }
+    if (!starData.task || starData.task.length === 0) {
+      feedback.push('Clearly define the <strong>Task</strong> you were responsible for.');
+    }
+    if (!starData.action || starData.action.length === 0) {
+      feedback.push('Describe the <strong>Action</strong> you specifically took.');
+    }
+    if (!starData.result || starData.result.length === 0) {
+      feedback.push('Make the <strong>Result</strong> or outcome of your actions clearer.');
+    }
+
+    const colorKey = [
+      { label: 'Situation', color: '#facc15' },
+      { label: 'Task', color: '#34d399' },
+      { label: 'Action', color: '#60a5fa' },
+      { label: 'Result', color: '#f87171' },
+    ];
 
     return (
       <div className="star-analysis">
@@ -467,24 +517,97 @@ const FeedbackReport = React.memo(({ report }) => {
           <i className="fas fa-star icon-sm icon-warning"></i>
           {UI_TEXT.STAR_ANALYSIS_TITLE}
         </h3>
-        <div className="star-analysis__content-wrapper">
-          {STAR_COMPONENTS.map(({ key, title, color }) => (
-            <div key={key} className="star-analysis__line">
-              <span className="star-analysis__label" style={{ color }}>
-                {title}:
-              </span>
-              <span className="star-analysis__content">
-                {starData?.[key] && starData[key].length > 0 
-                  ? starData[key].join('. ')
-                  : `No ${title.toLowerCase()} identified`
-                }
-              </span>
+        <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '8px' }}>
+          Below is your full response. STAR components are <mark>highlighted</mark>:
+        </p>
+
+        {/* Color Key */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
+          {colorKey.map((item, idx) => (
+            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span
+                style={{
+                  width: '12px',
+                  height: '12px',
+                  backgroundColor: item.color,
+                  borderRadius: '50%',
+                  display: 'inline-block',
+                  border: '1px solid #999'
+                }}
+              />
+              <span style={{ fontSize: '13px', color: '#374151' }}>{item.label}</span>
             </div>
           ))}
         </div>
+
+        {/* Highlighted Transcript */}
+        <div
+          className="star-analysis__highlighted-transcript"
+          style={{
+            background: '#f9fafb',
+            padding: '16px',
+            border: '1px solid #d1d5db',
+            borderRadius: '8px',
+            fontSize: '14px',
+            whiteSpace: 'pre-wrap',
+            lineHeight: '1.6',
+          }}
+          dangerouslySetInnerHTML={{ __html: highlightText(transcript, highlights) }}
+        />
+
+        {/* Feedback Section */}
+        {feedback.length > 0 && (
+          <div
+            style={{
+              marginTop: '16px',
+              background: '#fff7ed',
+              padding: '12px 16px',
+              border: '1px solid #fdba74',
+              borderRadius: '6px',
+              color: '#78350f',
+              fontSize: '14px',
+            }}
+          >
+            <strong>Feedback:</strong>
+            <ul style={{ paddingLeft: '1.25rem', marginTop: '0.5rem' }}>
+              {feedback.map((item, idx) => (
+                <li key={idx} style={{ marginBottom: '4px' }} dangerouslySetInnerHTML={{ __html: item }} />
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     );
   };
+
+  // const renderStarSection = () => {
+  //   const starData = report?.star_analysis || report?.starAnalysis;
+  //   if (!starData) return null;
+
+  //   return (
+  //     <div className="star-analysis">
+  //       <h3 className="star-analysis__title">
+  //         <i className="fas fa-star icon-sm icon-warning"></i>
+  //         {UI_TEXT.STAR_ANALYSIS_TITLE}
+  //       </h3>
+  //       <div className="star-analysis__content-wrapper">
+  //         {STAR_COMPONENTS.map(({ key, title, color }) => (
+  //           <div key={key} className="star-analysis__line">
+  //             <span className="star-analysis__label" style={{ color }}>
+  //               {title}:
+  //             </span>
+  //             <span className="star-analysis__content">
+  //               {starData?.[key] && starData[key].length > 0 
+  //                 ? starData[key].join('. ')
+  //                 : `No ${title.toLowerCase()} identified`
+  //               }
+  //             </span>
+  //           </div>
+  //         ))}
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   const renderTipsSection = () => (
     <div className="tips">
@@ -529,7 +652,7 @@ const FeedbackReport = React.memo(({ report }) => {
         {renderHandTrackingSection()}
         {renderVoiceAnalysisSection()}
         {renderTipsSection()}
-        {renderTranscriptSection()}
+        {/* {renderTranscriptSection()} */}
       </div>
     </div>
   );
