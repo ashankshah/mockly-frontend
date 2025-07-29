@@ -21,7 +21,7 @@ import '../styles/theme.css';
 
 const App = () => {
   // App state
-  const [currentView, setCurrentView] = useState('interview'); // 'interview', 'video-interview', 'processing', 'feedback', 'profile'
+   const [currentView, setCurrentView] = useState('practice'); // 'practice', 'progress', 'video-interview', 'processing', 'feedback'
   const [selectedQuestion, setSelectedQuestion] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [feedbackReport, setFeedbackReport] = useState(null);
@@ -33,32 +33,32 @@ const App = () => {
 
   // Monitor authentication state and redirect if needed
   useEffect(() => {
-    if (!loading && !isAuthenticated && currentView === 'profile') {
-      // Redirect to home page if user is not authenticated and on profile page
-      setCurrentView('interview');
+    if (!loading && !isAuthenticated && currentView === 'progress') {
+      // Redirect to practice page if user is not authenticated and on progress page
+      setCurrentView('practice');
     }
   }, [isAuthenticated, loading, currentView]);
 
   // Enhanced interview finish handler with debugging
   const handleInterviewFinish = useCallback(async (metrics, transcript, questionId) => {
-    console.log('🎯 STEP 4 - Parent component (App) received onFinish callback');
-    console.log('📊 Received metrics:', metrics);
-    console.log('📝 Received transcript:', transcript);
-    console.log('🔍 selectedQuestion in handleInterviewFinish:', selectedQuestion);
-    console.log('🔍 questionId passed from VideoAudioProcessor:', questionId);
-    console.log('🔍 Metrics JSON:', JSON.stringify(metrics, null, 2));
-    console.log('🔍 Metrics keys:', Object.keys(metrics || {}));
+    console.log('STEP 4 - Parent component (App) received onFinish callback');
+    console.log('Received metrics:', metrics);
+    console.log('Received transcript:', transcript);
+    console.log('selectedQuestion in handleInterviewFinish:', selectedQuestion);
+    console.log('questionId passed from VideoAudioProcessor:', questionId);
+    console.log('Metrics JSON:', JSON.stringify(metrics, null, 2));
+    console.log('Metrics keys:', Object.keys(metrics || {}));
     
     // Check if eye tracking data is still present
     if (metrics.eyeTracking || metrics.eye_tracking) {
-      console.log('✅ Eye tracking data is present in parent component');
-      console.log('👁️ Eye tracking data:', metrics.eyeTracking || metrics.eye_tracking);
+      console.log('Eye tracking data is present in parent component');
+      console.log('Eye tracking data:', metrics.eyeTracking || metrics.eye_tracking);
     } else {
-      console.log('❌ Eye tracking data is MISSING in parent component');
+      console.log('Eye tracking data is MISSING in parent component');
     }
 
     // Check individual fields
-    console.log('👁️ Individual eye tracking fields:', {
+    console.log('Individual eye tracking fields:', {
       eyeContactPercentage: metrics.eyeContactPercentage,
       smilePercentage: metrics.smilePercentage,
       sessionDuration: metrics.sessionDuration
@@ -290,7 +290,7 @@ const App = () => {
   const handleInterviewEnd = useCallback(() => {
     console.log('🛑 Interview ended, returning to question selection');
     console.log('🔍 selectedQuestion before clearing:', selectedQuestion);
-    setCurrentView('interview');
+    setCurrentView('practice'); // Changed from 'interview' to 'practice'
     setSelectedQuestion('');
     setFeedbackReport(null);
     setIsProcessing(false);
@@ -299,7 +299,7 @@ const App = () => {
   // Handle start new interview from feedback
   const handleStartNewInterview = useCallback(() => {
     console.log('🔄 Starting new interview from feedback');
-    setCurrentView('interview');
+    setCurrentView('practice'); // Changed from 'interview' to 'practice'
     setSelectedQuestion('');
     setFeedbackReport(null);
     setIsProcessing(false);
@@ -313,15 +313,15 @@ const App = () => {
       if (!confirmEndInterview) {
         return; // User cancelled, stay in interview
       }
-      // User confirmed, end the interview and go to profile
+      // User confirmed, end the interview and go to progress
       handleInterviewEnd();
     }
     setProfileKey(prev => prev + 1); // Force UserProfile re-mount
-    setCurrentView('profile');
+    setCurrentView('progress');
   }, [currentView]);
 
   const handleNavigateToInterview = useCallback((questionId = null) => {
-    setCurrentView('interview');
+    setCurrentView('practice');
     setFeedbackReport(null);
     
     // Set the selected question ID
@@ -339,7 +339,7 @@ const App = () => {
   // Render current view
   const renderCurrentView = () => {
     switch (currentView) {
-      case 'profile':
+      case 'progress':
         return (
           <UserProfile 
             key={profileKey}
@@ -396,7 +396,7 @@ const App = () => {
           </div>
         );
         
-      case 'interview':
+      case 'practice':
       default:
         return (
           <div className="app__main">
