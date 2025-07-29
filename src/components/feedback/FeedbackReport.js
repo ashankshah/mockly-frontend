@@ -199,12 +199,13 @@ const FeedbackReport = React.memo(({ report }) => {
 
     
   const renderStarSection = () => {
-    const starData = report?.star_analysis || report?.starAnalysis;
-    const transcript = report?.transcript_debug;
+    let starData = report?.star_analysis || report?.starAnalysis;
+    let transcript = report?.transcript_debug;
 
     if (!starData || !transcript) {
-      console.log("returning null");
-      return null;
+      // console.log("returning null");
+      // return null;
+      transcript = 'No transcript data available.';
     }
 
     // Build a regex-highlighted version of the transcript using STAR segments
@@ -325,7 +326,7 @@ const FeedbackReport = React.memo(({ report }) => {
   };
 
   const renderEyeTrackingSection = () => (
-    <SectionWrapper title="Computer Vision Analysis" iconClass="fas fa-eye" className="eye-tracking">
+    <SectionWrapper title="Facial Analysis" iconClass="fas fa-eye" className="eye-tracking">
       {/* {!hasEyeData && (
         <span className="section-warning">(No data captured)</span>
       )} */}
@@ -364,7 +365,7 @@ const FeedbackReport = React.memo(({ report }) => {
     const handCount = handData.handMetrics?.length ?? 0;
 
     return (
-      <SectionWrapper title="Hand Tracking Analysis" iconClass="fas fa-hand-paper" className="hand-tracking">
+      <SectionWrapper title="Hand Gesture Analysis" iconClass="fas fa-hand-paper" className="hand-tracking">
         {/* {!handData.hasData && (
           <span className="section-warning">(No data captured)</span>
         )} */}
