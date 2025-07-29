@@ -374,13 +374,14 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion }) =
             </strong>
           </div> */}
 
-          {/* Real Eye Tracking Analysis Component
+          {/* Real Eye Tracking Analysis Component */}
           <EyeTrackingAnalyzer
             videoRef={mediaStream.videoRef}
             isActive={isEyeTrackingActive}
             onMetricsUpdate={handleEyeTrackingUpdate}
             className="eye-tracking-overlay"
-          /> */}
+            hideUI={true}
+          />
 
           <div className="transcript-main">
             <div className="transcript-main__header">

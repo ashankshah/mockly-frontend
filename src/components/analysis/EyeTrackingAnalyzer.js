@@ -15,7 +15,8 @@ const EyeTrackingAnalyzer = React.memo(({
   videoRef, 
   isActive, 
   onMetricsUpdate,
-  className = '' 
+  className = '',
+  hideUI= false
 }) => {
   const modelRef = useRef();
   const animationFrameRef = useRef();
@@ -327,6 +328,8 @@ const EyeTrackingAnalyzer = React.memo(({
       </div>
     );
   }
+
+  if (hideUI) return null; // Hide UI if requested}
 
   return (
     <div className={`eye-tracking-analyzer ${className}`}>
