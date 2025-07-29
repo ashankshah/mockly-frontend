@@ -203,7 +203,7 @@ const LoadingScreen = ({ onDone }) => {
       fontFamily: 'system-ui, -apple-system, sans-serif',
       color: '#2d3748'
     }}>
-      {/* Mockly Logo/Header */}
+      {/* Mockly Logo/Header
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -232,7 +232,7 @@ const LoadingScreen = ({ onDone }) => {
         }}>
           Mockly
         </h1>
-      </div>
+      </div> */}
 
       <h2 style={{
         fontSize: '1.8rem',
@@ -403,7 +403,7 @@ const LoadingScreen = ({ onDone }) => {
         </div>
       )}
 
-      {/* Status Message */}
+      {/* Status Message
       <div style={{ 
         marginBottom: '2rem', 
         textAlign: 'center',
@@ -430,7 +430,7 @@ const LoadingScreen = ({ onDone }) => {
             {error}
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Action Buttons */}
       <div style={{ display: 'flex', gap: '1rem' }}>
