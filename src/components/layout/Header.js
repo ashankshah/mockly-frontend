@@ -36,9 +36,32 @@ function Header({
     navigate('/');
   };
 
+  const handleNavigateToPractice = () => {
+    onNavigateToInterview();
+  };
+
+  const handleNavigateToProgress = () => {
+    onNavigateToProfile();
+  };
+
   const renderNavLinks = () => (
     <ul className="nav-links">
-      <li><a href="#about" className="nav-link">About</a></li>
+      <li>
+        <button 
+          onClick={handleNavigateToPractice}
+          className={`nav-link ${currentView === 'practice' ? 'nav-link--active' : ''}`}
+        >
+          Practice
+        </button>
+      </li>
+      <li>
+        <button 
+          onClick={handleNavigateToProgress}
+          className={`nav-link ${currentView === 'progress' ? 'nav-link--active' : ''}`}
+        >
+          Progress
+        </button>
+      </li>
     </ul>
   );
 
