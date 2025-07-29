@@ -640,11 +640,28 @@ p {
   flex-direction: column;
 }
 
+.session-timer {
+  margin-top: 12px;
+  padding: 6px 12px;
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);;
+  font-weight: 600;
+  font-size: 2.5vh;
+  text-align: center;
+  border-radius: 8px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  border: var(--color-primary-medium) 2px solid;
+}
+
+
 .interview-main {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
+  overflow-y:auto;
 }
 
 .interview-layout__done-button {

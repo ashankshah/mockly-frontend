@@ -18,6 +18,14 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion }) =
   const [isVideoCardExpanded, setIsVideoCardExpanded] = useState(true);
   const [isFinished, setIsFinished] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+  };
+
 
   const [eyeTrackingMetrics, setEyeTrackingMetrics] = useState({
     eyeContactPercentage: 0,
@@ -296,6 +304,22 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion }) =
     };
   }, []);
 
+    // ⏱️ Timer effect for session duration
+  useEffect(() => {
+    let timerInterval;
+
+    if (isInitialized) {
+      timerInterval = setInterval(() => {
+        setElapsedTime((prev) => prev + 1);
+      }, 1000);
+    }
+
+    return () => {
+      clearInterval(timerInterval);
+    };
+  }, [isInitialized]);
+
+
   if (mediaStream.permissionState !== 'granted') {
     return (
       <PermissionScreen
@@ -325,10 +349,14 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion }) =
             videoRef={mediaStream.videoRef}
             mediaStream={mediaStream.mediaStream}
           />
+          
+          <div className="session-timer">
+            {formatTime(elapsedTime)}
+          </div>
         </div>
 
         <div className="interview-main">
-          <div style={{ background: '#e8f5e8', border: '2px solid #4ade80', borderRadius: '8px', padding: '12px', marginBottom: '16px', fontSize: '14px' }}>
+          {/* <div style={{ background: '#e8f5e8', border: '2px solid #4ade80', borderRadius: '8px', padding: '12px', marginBottom: '16px', fontSize: '14px' }}>
             <strong>🔍 SIMPLE DEBUG:</strong>
             <br />
             Voice Average: {voiceMetrics.averageVolume}% | Variation: {voiceMetrics.volumeVariation}% | Samples: {voiceMetrics.totalSamples}
@@ -344,15 +372,15 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion }) =
             <strong style={{ color: isEyeTrackingActive ? 'green' : 'red' }}>
               Eye Tracking: {isEyeTrackingActive ? '✅ REAL ANALYSIS ACTIVE' : '❌ INACTIVE'}
             </strong>
-          </div>
+          </div> */}
 
-          {/* Real Eye Tracking Analysis Component */}
+          {/* Real Eye Tracking Analysis Component
           <EyeTrackingAnalyzer
             videoRef={mediaStream.videoRef}
             isActive={isEyeTrackingActive}
             onMetricsUpdate={handleEyeTrackingUpdate}
             className="eye-tracking-overlay"
-          />
+          /> */}
 
           <div className="transcript-main">
             <div className="transcript-main__header">
