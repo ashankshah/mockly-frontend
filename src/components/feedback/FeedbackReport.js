@@ -141,10 +141,23 @@ const FeedbackReport = React.memo(({ report }) => {
   };
 
   const renderComprehensiveScoreSection = () => {
+
+    let starData = report?.star_analysis || report?.starAnalysis;
+
+    const starComponents = ['situation', 'task', 'action', 'result'];
+    const presentCount = starComponents.reduce((count, key) => {
+      return count + (Array.isArray(starData[key]) && starData[key].length > 0 ? 1 : 0);
+    }, 0);
+
+    const bonus = (presentCount / 4) * 25;
+    const baseScore = typeof starData.score === 'number' ? starData.score : 0;
+
+    const contentScore = Math.round(baseScore + bonus);
+
     const scores = [
-      { label: 'Content', value: 85 },
+      { label: 'Content', value: contentScore },
       { label: 'Pitch', value: 78 },
-      { label: 'Nonverbal', value: 92 }
+      { label: 'Nonverbal', value: eyeData.eyeContactPercentage || 0 }
     ];
 
     return (
