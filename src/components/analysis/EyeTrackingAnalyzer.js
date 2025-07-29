@@ -8,7 +8,8 @@
  */
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { DevHelpers } from '../config/devConfig';
+import { DevHelpers } from '../../config/devConfig';
+import './EyeTrackingAnalyzer.css';
 
 const EyeTrackingAnalyzer = React.memo(({ 
   videoRef, 
@@ -279,6 +280,14 @@ const EyeTrackingAnalyzer = React.memo(({
       });
     }
   }, [onMetricsUpdate]);
+
+  // Expose reset function globally for cleanup
+  useEffect(() => {
+    window.eyeTrackingReset = resetMetrics;
+    return () => {
+      delete window.eyeTrackingReset;
+    };
+  }, [resetMetrics]);
 
   // DEBUG: Log when component receives new props
   useEffect(() => {

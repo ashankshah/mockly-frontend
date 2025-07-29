@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import SelectedQuestionDisplay from '../interview/SelectedQuestionDisplay';
 import PermissionScreen from '../interview/PermissionScreen';
 import VideoCard from '../layout/VideoCard';
+import EyeTrackingAnalyzer from './EyeTrackingAnalyzer';
 
 
 import { useMediaStream } from '../../hooks/useMediaStream';
@@ -88,21 +89,9 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion }) =
   }, []);
 
   // Direct analysis functions that update state variables
-  const performEyeTrackingAnalysis = useCallback(() => {
-    if (!isEyeTrackingActive || !mediaStream.videoRef.current) return;
-    
-    // Simulate eye tracking analysis and update metrics
-    const mockEyeMetrics = {
-      eyeContactPercentage: Math.floor(Math.random() * 100),
-      smilePercentage: Math.floor(Math.random() * 100),
-      gazeStatus: 'Analyzing',
-      sessionTime: '00:00'
-    };
-    
-    setEyeTrackingMetrics(mockEyeMetrics);
-    latestEyeMetricsRef.current = mockEyeMetrics;
-  }, [isEyeTrackingActive, mediaStream.videoRef]);
-
+  // Eye tracking analysis is now handled by the EyeTrackingAnalyzer component
+  // which provides real-time face detection and eye contact analysis
+  
   const performVoiceAnalysis = useCallback(() => {
     if (!isVoiceAnalysisActive || !mediaStream.mediaStream) return;
     
@@ -261,7 +250,8 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion }) =
       setIsEyeTrackingActive(true);
       setIsVoiceAnalysisActive(true);
       setIsHandTrackingActive(true);
-      console.log('✅ Hand tracking activated');
+      console.log('Eye tracking activated');
+      console.log('Hand tracking activated');
       setupSessionTimeout();
 
     } catch (error) {
@@ -279,13 +269,13 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion }) =
     if (!isInitialized) return;
     
     const analysisInterval = setInterval(() => {
-      performEyeTrackingAnalysis();
+      // performEyeTrackingAnalysis(); // This line is removed as per the edit hint
       performVoiceAnalysis();
       performHandTrackingAnalysis();
     }, 1000); // Run analysis every second
     
     return () => clearInterval(analysisInterval);
-  }, [isInitialized, performEyeTrackingAnalysis, performVoiceAnalysis, performHandTrackingAnalysis]);
+  }, [isInitialized, performVoiceAnalysis, performHandTrackingAnalysis]);
 
   useEffect(() => {
     if (!isInitialized) initializeInterview();
@@ -343,14 +333,26 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion }) =
             <br />
             Voice Average: {voiceMetrics.averageVolume}% | Variation: {voiceMetrics.volumeVariation}% | Samples: {voiceMetrics.totalSamples}
             <br />
-            Eye Contact: {eyeTrackingMetrics.eyeContactPercentage}% | Smile: {eyeTrackingMetrics.smilePercentage}%
+            Eye Contact: {eyeTrackingMetrics.eyeContactPercentage}% | Smile: {eyeTrackingMetrics.smilePercentage}% | Status: {eyeTrackingMetrics.gazeStatus}
             <br />
             Hand Feedback: {handTrackingMetrics.feedback}
             <br />
             <strong style={{ color: voiceMetrics.averageVolume > 5 ? 'green' : 'red' }}>
               Voice Status: {voiceMetrics.averageVolume > 5 ? '✅ DETECTED' : '❌ NOT DETECTED'}
             </strong>
+            <br />
+            <strong style={{ color: isEyeTrackingActive ? 'green' : 'red' }}>
+              Eye Tracking: {isEyeTrackingActive ? '✅ REAL ANALYSIS ACTIVE' : '❌ INACTIVE'}
+            </strong>
           </div>
+
+          {/* Real Eye Tracking Analysis Component */}
+          <EyeTrackingAnalyzer
+            videoRef={mediaStream.videoRef}
+            isActive={isEyeTrackingActive}
+            onMetricsUpdate={handleEyeTrackingUpdate}
+            className="eye-tracking-overlay"
+          />
 
           <div className="transcript-main">
             <div className="transcript-main__header">
