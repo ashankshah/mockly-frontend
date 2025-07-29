@@ -12,6 +12,7 @@ import AuthModal from '../components/auth/AuthModal';
 import UserProfile from '../components/profile/UserProfile';
 import InterviewSession from '../components/interview/InterviewSession';
 import VideoAudioProcessor from '../components/analysis/VideoAudioProcessor';
+import LoadingScreen from '../components/interview/LoadingScreen';
 import FeedbackReport from '../components/feedback/FeedbackReport';
 import ProcessingScreen from '../components/feedback/ProcessingScreen';
 import OAuthCallback from '../components/auth/OAuthCallback';
@@ -27,6 +28,8 @@ const App = () => {
   const [feedbackReport, setFeedbackReport] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [profileKey, setProfileKey] = useState(0); // Add key for forcing UserProfile re-mount
+  const [presetMediaStream, setPresetMediaStream] = useState(null); // for setup page
+
 
   // Get authentication state
   const { isAuthenticated, loading, getAuthHeaders } = useAuth();
@@ -282,51 +285,70 @@ const App = () => {
   const handleInterviewStart = useCallback((questionId) => {
     console.log('🎬 Starting interview with question:', questionId);
     setSelectedQuestion(questionId);
-    setCurrentView('video-interview');
+    setCurrentView('setup');
     setFeedbackReport(null);
+  }, []);
+
+  const handleSetupComplete = useCallback((mediaStream) => {
+    console.log('✅ Setup complete, starting interview with preset stream');
+    setPresetMediaStream(mediaStream);
+    setCurrentView('video-interview');
   }, []);
 
   // Handle interview end (back to question selection)
   const handleInterviewEnd = useCallback(() => {
     console.log('🛑 Interview ended, returning to question selection');
     console.log('🔍 selectedQuestion before clearing:', selectedQuestion);
-    setCurrentView('practice'); // Changed from 'interview' to 'practice'
+
+    if (presetMediaStream) {
+      presetMediaStream.getTracks().forEach(track => track.stop());
+      setPresetMediaStream(null);
+    }
+
+    setCurrentView('practice');
     setSelectedQuestion('');
     setFeedbackReport(null);
     setIsProcessing(false);
-  }, [selectedQuestion]);
+  }, [selectedQuestion, presetMediaStream]);
 
-  // Handle start new interview from feedback
   const handleStartNewInterview = useCallback(() => {
     console.log('🔄 Starting new interview from feedback');
-    setCurrentView('practice'); // Changed from 'interview' to 'practice'
+
+    if (presetMediaStream) {
+      presetMediaStream.getTracks().forEach(track => track.stop());
+      setPresetMediaStream(null);
+    }
+
+    setCurrentView('practice');
     setSelectedQuestion('');
     setFeedbackReport(null);
     setIsProcessing(false);
-  }, []);
+  }, [presetMediaStream]);
 
   // Navigation handlers
   const handleNavigateToProfile = useCallback(() => {
-    // Check if user is currently in an interview session
-    if (currentView === 'video-interview') {
+    if (currentView === 'video-interview' || currentView === 'setup') {
       const confirmEndInterview = window.confirm(UI_TEXT.NAVIGATION_CONFIRMATION);
-      if (!confirmEndInterview) {
-        return; // User cancelled, stay in interview
-      }
-      // User confirmed, end the interview and go to progress
+      if (!confirmEndInterview) return;
       handleInterviewEnd();
     }
-    setProfileKey(prev => prev + 1); // Force UserProfile re-mount
+
+    setProfileKey(prev => prev + 1);
     setCurrentView('progress');
-  }, [currentView]);
+  }, [currentView, handleInterviewEnd]);
+
 
   const handleNavigateToInterview = useCallback((questionId = null) => {
+    if (presetMediaStream) {
+      presetMediaStream.getTracks().forEach(track => track.stop());
+      setPresetMediaStream(null);
+    }
+
     setCurrentView('practice');
     setFeedbackReport(null);
-    
-    // Set the selected question ID
     setSelectedQuestion(questionId || '');
-  }, []);
+  }, [presetMediaStream]);
+
 
   const handleShowAuthModal = useCallback(() => {
     setShowAuthModal(true);
@@ -347,6 +369,16 @@ const App = () => {
             onNavigateToInterview={handleNavigateToInterview} 
           />
         );
+      
+      case 'setup':
+        return (
+          <div className="app__main">
+            <div className="app__container">
+              <LoadingScreen onDone={handleSetupComplete} />
+            </div>
+          </div>
+        );
+
         
       case 'processing':
         return (
@@ -389,6 +421,7 @@ const App = () => {
                     onFinish={handleInterviewFinish}
                     onEnd={handleInterviewEnd}
                     selectedQuestion={selectedQuestion}
+                    presetMediaStream={presetMediaStream}
                   />
                 </div>
               </div>
@@ -453,3 +486,5 @@ const AppWithProviders = () => {
 };
 
 export default AppWithProviders;
+
+
