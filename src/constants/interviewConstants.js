@@ -61,10 +61,10 @@ export const SUCCESS_MESSAGES = {
 
 // Development mode messages
 export const DEV_MESSAGES = {
-  API_DISABLED: "🔧 DEV MODE: API calls disabled - using mock data",
-  SIMULATION_ACTIVE: "🔧 DEV MODE: Transcript simulation active",
+  API_DISABLED: "DEV MODE: API calls disabled - using mock data",
+  SIMULATION_ACTIVE: "DEV MODE: Transcript simulation active",
   SIMULATION_ENABLED: "Simulation enabled - waiting for transcript...",
-  SKIPPING_SPEECH_RECOGNITION: "🔧 Skipping speech recognition in simulation mode",
+  SKIPPING_SPEECH_RECOGNITION: "Skipping speech recognition in simulation mode",
   IGNORING_NO_SPEECH: "Ignoring no-speech error in simulation mode",
   NOT_AUTO_FINISHING: "In simulation mode, not auto-finishing on speech end"
 };
