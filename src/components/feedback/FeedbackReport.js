@@ -160,6 +160,8 @@ const FeedbackReport = React.memo(({ report }) => {
       { label: 'Nonverbal', value: eyeData.eyeContactPercentage || 0 }
     ];
 
+    const overallScore = scores.reduce((sum, score) => sum + score.value, 0) / scores.length;
+
     return (
       <div style={{ marginTop: '40px' }}>
         <SectionWrapper
@@ -179,7 +181,7 @@ const FeedbackReport = React.memo(({ report }) => {
                 <span className="score-overall__label">Overall Score</span>
                 <CountUp
                   start={0}
-                  end={85}
+                  end={overallScore}
                   duration={2}
                   suffix="%"
                   className="score-overall__value"
