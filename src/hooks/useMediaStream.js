@@ -21,7 +21,6 @@ export const useMediaStream = () => {
   const setupVideo = useCallback((stream) => {
     DevHelpers.log('setupVideo called with:', { stream, videoRef: videoRef.current });
     
-    // Just check if we have video tracks and set the hasVideo flag
     const videoTracks = stream.getVideoTracks();
     if (videoTracks.length > 0) {
       DevHelpers.log('Video tracks found, setting hasVideo to true');
@@ -62,13 +61,11 @@ export const useMediaStream = () => {
       setPermissionState('requesting');
       setPermissionError('');
       
-      // Stop any existing stream first
       if (mediaStreamRef.current) {
         MediaStreamUtils.stopTracks(mediaStreamRef.current);
         mediaStreamRef.current = null;
       }
-      
-      // Try with video first
+
       let stream = null;
       try {
         stream = await MediaStreamUtils.getUserMedia({
@@ -84,8 +81,6 @@ export const useMediaStream = () => {
         setupVideo(stream);
       } catch (videoError) {
         DevHelpers.warn('Video capture failed, trying audio only:', videoError);
-        
-        // Fallback to audio only
         try {
           stream = await MediaStreamUtils.getUserMedia({
             audio: AUDIO_CONSTRAINTS
@@ -137,6 +132,22 @@ export const useMediaStream = () => {
     setIsAudioOnly(false);
   }, []);
 
+  // ✅ NEW METHOD: Used for setup streams from App.js
+  const setFromPreset = useCallback((stream) => {
+    if (!stream) return;
+
+    mediaStreamRef.current = stream;
+    setMediaStream(stream);
+    setupVideo(stream);
+    setPermissionState('granted');
+    setPermissionError('');
+    DevHelpers.log('Media stream preset applied successfully');
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [setupVideo]);
+
   return {
     // State
     mediaStream,
@@ -150,6 +161,7 @@ export const useMediaStream = () => {
     startCapture,
     stopCapture,
     retryCapture,
-    resetState
+    resetState,
+    setFromPreset // ✅ Expose this
   };
-}; 
+};

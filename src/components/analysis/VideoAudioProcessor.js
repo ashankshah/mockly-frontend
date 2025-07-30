@@ -13,7 +13,7 @@ import { ResourceCleanup } from '../../utils/resourceCleanup';
 import { DEFAULT_METRICS, TranscriptValidator } from '../../utils/interviewUtils';
 import { INTERVIEW_CONFIG, UI_TEXT, ERROR_MESSAGES } from '../../constants/interviewConstants';
 
-const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion }) => {
+const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, presetMediaStream }) => {
   const [listeningDots, setListeningDots] = useState('');
   const [isVideoCardExpanded, setIsVideoCardExpanded] = useState(true);
   const [isFinished, setIsFinished] = useState(false);
@@ -61,7 +61,7 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion }) =
   const dotIntervalRef = useRef();
   const timeoutRef = useRef();
 
-  const mediaStream = useMediaStream();
+  const mediaStream = useMediaStream(presetMediaStream);
   const speechRecognition = useSpeechRecognition();
   const transcriptSimulation = useTranscriptSimulation();
 
@@ -248,7 +248,12 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion }) =
         // Diagnostic removed - transcription is working in Chrome
       }
       
-      await mediaStream.startCapture();
+      if (presetMediaStream) {
+        mediaStream.setFromPreset(presetMediaStream);
+      } else {
+        await mediaStream.startCapture();
+      }
+
       if (DevHelpers.isTranscriptSimulationEnabled()) {
         transcriptSimulation.startSimulation();
       } else {
