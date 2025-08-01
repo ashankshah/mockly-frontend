@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@mediapipe/drawing_utils": "^0.3.1675466124",
     "@tensorflow-models/face-landmarks-detection": "^1.0.6",
     "@tensorflow-models/hand-pose-detection": "^2.0.1",
     "@tensorflow/tfjs-backend-webgl": "^4.22.0",

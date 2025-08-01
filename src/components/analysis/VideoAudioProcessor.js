@@ -3,6 +3,7 @@ import SelectedQuestionDisplay from '../interview/SelectedQuestionDisplay';
 import PermissionScreen from '../interview/PermissionScreen';
 import VideoCard from '../layout/VideoCard';
 import EyeTrackingAnalyzer from './EyeTrackingAnalyzer';
+import HandTrackingAnalyzer from './HandTrackingAnalyzer';
 
 
 import { useMediaStream } from '../../hooks/useMediaStream';
@@ -90,10 +91,10 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, pre
   const handleHandTrackingUpdate = useCallback((metrics) => {
     setHandTrackingMetrics(metrics);
     latestHandMetricsRef.current = metrics;
-    console.log('📨 VideoAudioProcessor RECEIVED hand tracking update:', metrics);
+    // console.log('📨 VideoAudioProcessor RECEIVED hand tracking update:', metrics);
     setHandTrackingMetrics(metrics);
     latestHandMetricsRef.current = metrics;
-    console.log('💾 Hand tracking metrics stored in state');
+    // console.log('💾 Hand tracking metrics stored in state');
   }, []);
 
   // Direct analysis functions that update state variables
@@ -284,7 +285,7 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, pre
     const analysisInterval = setInterval(() => {
       // performEyeTrackingAnalysis(); // This line is removed as per the edit hint
       performVoiceAnalysis();
-      performHandTrackingAnalysis();
+      // performHandTrackingAnalysis();
     }, 1000); // Run analysis every second
     
     return () => clearInterval(analysisInterval);
@@ -387,6 +388,13 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, pre
             className="eye-tracking-overlay"
             hideUI={true}
           />
+
+          <HandTrackingAnalyzer
+            videoRef={mediaStream.videoRef}
+            isActive={isHandTrackingActive}
+            onMetricsUpdate={handleHandTrackingUpdate}
+          />
+
 
           <div className="transcript-main">
             <div className="transcript-main__header">
