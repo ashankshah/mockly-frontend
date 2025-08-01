@@ -1,0 +1,58 @@
+.speedometer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.speedometer__label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #111827;
+}
+
+.speedometer__gauge {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  height: 18px;
+  border-radius: 9999px;
+  overflow: visible;
+  background-color: #f3f4f6;
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.06);
+  margin-bottom: 8px;
+}
+
+.speedometer__zones {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.speedometer__zone {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.speedometer__needle {
+  position: absolute;
+  top: -5px;
+  width: 4px;
+  height: 28px;
+  background-color: #111827;
+  transform: translateX(-50%);
+  transition: left 0.4s ease;
+  z-index: 10;
+  border-radius: 2px;
+}
+
+.speedometer__value {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4b5563;
+  margin-top: 2px;
+}

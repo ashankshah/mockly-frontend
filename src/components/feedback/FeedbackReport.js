@@ -9,6 +9,8 @@ import { ScoreEvaluator } from '../../utils/interviewUtils';
 import { STAR_COMPONENTS, UI_TEXT } from '../../constants/interviewConstants';
 import './FeedbackReport.css';
 
+import Speedometer from './Speedometer';
+
 import CountUp from 'react-countup';
 
 const FeedbackReport = React.memo(({ report }) => {
@@ -376,14 +378,11 @@ const FeedbackReport = React.memo(({ report }) => {
   const renderHandTrackingSection = () => {
     const [minutes, secondsStr] = eyeData.sessionDuration.split(':');
     const totalSeconds = parseInt(minutes) * 60 + parseInt(secondsStr);
-    const averageHandsVisibleTime = ((handData.handMetrics[0].totalVisibleTime + handData.handMetrics[1].totalVisibleTime) / 100 )/2;
+    const averageHandsVisibleTime = ((handData.handMetrics[0].totalVisibleTime + handData.handMetrics[1].totalVisibleTime) )/2;
     const handsVisiblePercentage = Math.round(averageHandsVisibleTime / totalSeconds) * 100
+
+    const avgSpeedBothHands = (handData.handMetrics[0].averageSpeed + handData.handMetrics[1].averageSpeed) / 2;
   
-    // const handsVisiblePercentage = (Math.round((handData.handMetrics[0].totalVisibleTime + handData.handMetrics[1].totalTime)/2)) * 100 || 0;
-    // console.log(handsVisiblePercentage);
-    // console.log('Hand Data:', handData);
-    // const handPosition = handData.feedback === 'Just right' ? 'Good' : 'Poor';
-    // const handCount = handData.handMetrics?.length ?? 0;
 
     return (
       <SectionWrapper title="Hand Gesture Analysis" iconClass="fas fa-hand-paper" className="hand-tracking">
@@ -391,9 +390,48 @@ const FeedbackReport = React.memo(({ report }) => {
           <span className="section-warning">(No data captured)</span>
         )} */}
         <div className="metric-grid">
-          <MetricCard icon="fas fa-hand-rock" label="Gesture Recognition" value={`${Math.round(handsVisiblePercentage)}%`} />
+          {/* <MetricCard icon="fas fa-hand-rock" label="Average Speed" value={`${Math.round(avgSpeedBothHands)} px/s`} />
           <MetricCard icon="fas fa-hand-point-up" label="Movement Accuracy" value={`${Math.round(averageHandsVisibleTime)}%`} />
-          <MetricCard icon="fas fa-hand-spock" label="Hands Visible Time %" value={`${Math.round(handsVisiblePercentage)}%`} />
+          <MetricCard icon="fas fa-hand-spock" label="Hands Visible Time %" value={`${Math.round(handsVisiblePercentage)}%`} /> */}
+          <Speedometer
+            label="Average Speed"
+            value={avgSpeedBothHands}
+            min={0}
+            max={300}
+            unit=" px/s"
+            zones={[
+              { min: 0, max: 120, color: '#fcd34d' },     
+              { min: 120, max: 200, color: '#34d399' },   
+              { min: 200, max: 300, color: '#f87171' },   
+            ]}
+          />
+
+          <Speedometer
+            label="Hand Visibility"
+            value={handsVisiblePercentage}
+            min={0}
+            max={100}
+            unit="%"
+            zones={[
+              { min: 0, max: 30, color: '#f87171' },     // too little
+              { min: 30, max: 60, color: '#fcd34d' },    // good
+              { min: 60, max: 100, color: '#34d399' },   // expressive
+            ]}
+          />
+
+          <Speedometer
+            label="Erraticness"
+            value={(handData.handMetrics[0].averageErraticness + handData.handMetrics[1].averageErraticness) / 2}
+            min={0}
+            max={10}
+            unit=""
+            zones={[
+              { min: 0, max: 5, color: '#34d399' },
+              { min: 5, max: 8, color: '#fcd34d' },
+              { min: 8, max: 10, color: '#f87171' },
+            ]}
+          />
+
         </div>
           {!handData.hasData && (
             <WarningBanner 
