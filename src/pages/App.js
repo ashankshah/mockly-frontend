@@ -267,6 +267,18 @@ const App = () => {
         // responseData.handInterviewTime  = metrics.interviewDurationSec; 
         console.log('🔧 Restored hand tracking data to response:', responseData.handMetrics);        
       }
+
+      if (responseData.voiceAnalysis) {
+        console.log('✅ Voice tracking data preserved in API response');
+        console.log('👁️ Voice tracking in response:', responseData.voiceAnalysis);
+      } else {
+        console.log('❌ Voice tracking data LOST in API response');
+        
+        // Try to restore eye tracking data if it's missing
+        responseData.voiceAnalysis = metrics.voiceAnalysis;
+        // responseData.handInterviewTime  = metrics.interviewDurationSec; 
+        console.log('🔧 Restored hand tracking data to response:', responseData.handMetrics);        
+      }
       
       // Save user progress if authenticated
       if (isAuthenticated) {

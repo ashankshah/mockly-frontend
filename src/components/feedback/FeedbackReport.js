@@ -19,14 +19,28 @@ const FeedbackReport = React.memo(({ report }) => {
   
   // Extract voice data from report
   const getVoiceData = () => {
-    return {
-      averageVolume: report?.averageVolume ?? 0,
-      volumeVariation: report?.volumeVariation ?? 0,
-      pitchVariation: report?.pitchVariation ?? 0,
-      speechRate: report?.speechRate ?? 0,
-      clarity: report?.clarity ?? 0,
-      totalSamples: report?.totalSamples ?? 0
-    };
+    const voiceMetrics = report?.voiceAnalysis 
+    if (voiceMetrics) {
+      return{
+        averageVolume: voiceMetrics.averageVolume || 0,
+        volumeVariation: voiceMetrics.volumeVariation || 0,
+        pitchVariation: voiceMetrics.pitchVariation || 0,
+        speechRate: voiceMetrics.speechRate || 0,
+        clarity: voiceMetrics.clarity || 0,
+        totalSamples: voiceMetrics.totalSamples || 0,
+        hasData: true
+      }
+    } else {
+      return {
+        averageVolume: [],
+        volumeVariation: [],
+        pitchVariation: [],
+        speechRate: [],
+        clarity: [],
+        totalSamples: [],
+        hasData: false
+      };
+    }
   };
 
   // Extract eye tracking data
@@ -439,6 +453,7 @@ const FeedbackReport = React.memo(({ report }) => {
   };
 
   const renderVoiceAnalysisSection = () => {
+
     const getMetricColor = (value, type) => {
       switch (type) {
         case 'volume': return value > 10 ? '#10b981' : value > 3 ? '#f59e0b' : '#000000';
@@ -460,11 +475,12 @@ const FeedbackReport = React.memo(({ report }) => {
           <MetricCard icon="fas fa-microphone" label="Clarity" value={`${voiceData.clarity}%`} color={getMetricColor(voiceData.clarity, 'clarity')} />
           <MetricCard icon="fas fa-database" label="Samples" value={voiceData.totalSamples} />
         </div>
-        {hasVoiceData ? (
-          <SuccessBanner text="Voice analysis completed successfully!" detail={`Captured ${voiceData.totalSamples} samples with ${voiceData.averageVolume}% average volume.`} />
-        ) : (
-          <WarningBanner text="Voice analysis data was not captured." detail={`Possible causes:\n• Microphone not working or muted\n• Speaking too quietly\n• Browser permissions not granted`} />
-        )}
+        {!voiceData.hasData && (
+            <WarningBanner 
+              text="Voice data was not captured." 
+              detail={`Possible causes:\n• Hands not visible in camera frame\n• Camera permissions not granted\n• Hand tracking model failed to load`} 
+            />
+          )}
       </SectionWrapper>
     );
   };
