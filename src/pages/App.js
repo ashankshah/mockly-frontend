@@ -245,8 +245,7 @@ const App = () => {
         console.log('👁️ Eye tracking in response:', responseData.eyeTracking || responseData.eye_tracking);
       } else {
         console.log('❌ Eye tracking data LOST in API response');
-        console.log('🔍 Available fields in response:', Object.keys(responseData));
-        
+
         // Try to restore eye tracking data if it's missing
         responseData.eyeTracking = metrics.eyeTracking;
         responseData.eye_tracking = metrics.eye_tracking;
@@ -255,6 +254,18 @@ const App = () => {
         responseData.sessionDuration = metrics.sessionDuration;
         
         console.log('🔧 Restored eye tracking data to response:', responseData);
+      }
+
+      if (responseData.handMetrics) {
+        console.log('✅ Hand tracking data preserved in API response');
+        console.log('👁️ Hand tracking in response:', responseData.handMetrics);
+      } else {
+        console.log('❌ Hand tracking data LOST in API response');
+        
+        // Try to restore eye tracking data if it's missing
+        responseData.handMetrics = metrics.handMetrics;
+        // responseData.handInterviewTime  = metrics.interviewDurationSec; 
+        console.log('🔧 Restored hand tracking data to response:', responseData.handMetrics);        
       }
       
       // Save user progress if authenticated

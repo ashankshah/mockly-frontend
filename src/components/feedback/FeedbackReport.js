@@ -40,8 +40,8 @@ const FeedbackReport = React.memo(({ report }) => {
   const getHandData = () => {
     return {
       handMetrics: report?.handMetrics || [],
-      feedback: report?.feedback || 'No data',
-      hasData: report?.handMetrics && report.handMetrics.length > 0
+      // handSessionDuration: report?.handInterviewTime || 'No data',
+      hasData: report?.handMetrics 
     };
   };
 
@@ -374,10 +374,16 @@ const FeedbackReport = React.memo(({ report }) => {
   );
 
   const renderHandTrackingSection = () => {
-    const firstHandSpeed = handData.handMetrics?.[0]?.speed ?? 0;
-    const firstHandError = handData.handMetrics?.[0]?.err ?? 0;
-    const handPosition = handData.feedback === 'Just right' ? 'Good' : 'Poor';
-    const handCount = handData.handMetrics?.length ?? 0;
+    const [minutes, secondsStr] = eyeData.sessionDuration.split(':');
+    const totalSeconds = parseInt(minutes) * 60 + parseInt(secondsStr);
+    const averageHandsVisibleTime = ((handData.handMetrics[0].totalVisibleTime + handData.handMetrics[1].totalVisibleTime) / 100 )/2;
+    const handsVisiblePercentage = Math.round(averageHandsVisibleTime / totalSeconds) * 100
+  
+    // const handsVisiblePercentage = (Math.round((handData.handMetrics[0].totalVisibleTime + handData.handMetrics[1].totalTime)/2)) * 100 || 0;
+    // console.log(handsVisiblePercentage);
+    // console.log('Hand Data:', handData);
+    // const handPosition = handData.feedback === 'Just right' ? 'Good' : 'Poor';
+    // const handCount = handData.handMetrics?.length ?? 0;
 
     return (
       <SectionWrapper title="Hand Gesture Analysis" iconClass="fas fa-hand-paper" className="hand-tracking">
@@ -385,15 +391,17 @@ const FeedbackReport = React.memo(({ report }) => {
           <span className="section-warning">(No data captured)</span>
         )} */}
         <div className="metric-grid">
-          <MetricCard icon="fas fa-hand-rock" label="Gesture Recognition" value={`${Math.round(firstHandSpeed)}%`} />
-          <MetricCard icon="fas fa-hand-point-up" label="Movement Accuracy" value={`${Math.round(firstHandError)}%`} />
-          <MetricCard icon="fas fa-hand-spock" label="Hand Position" value={handPosition} />
+          <MetricCard icon="fas fa-hand-rock" label="Gesture Recognition" value={`${Math.round(handsVisiblePercentage)}%`} />
+          <MetricCard icon="fas fa-hand-point-up" label="Movement Accuracy" value={`${Math.round(averageHandsVisibleTime)}%`} />
+          <MetricCard icon="fas fa-hand-spock" label="Hands Visible Time %" value={`${Math.round(handsVisiblePercentage)}%`} />
         </div>
-        {handData.hasData ? (
-          <SuccessBanner text="Hand tracking completed successfully!" detail={`Feedback: ${handData.feedback || 'Unknown'} | Detected ${handCount} hand(s)`} />
-        ) : (
-          <WarningBanner text="Hand tracking data was not captured." detail={`Possible causes:\n• Hands not visible in camera frame\n• Camera permissions not granted\n• Hand tracking model failed to load`} />
-        )}
+          {!handData.hasData && (
+            <WarningBanner 
+              text="Hand tracking data was not captured." 
+              detail={`Possible causes:\n• Hands not visible in camera frame\n• Camera permissions not granted\n• Hand tracking model failed to load`} 
+            />
+          )}
+
       </SectionWrapper>
     );
   };
@@ -479,7 +487,7 @@ const FeedbackReport = React.memo(({ report }) => {
     </div>
   );
 });
-
+ 
 FeedbackReport.displayName = 'FeedbackReport';
 
 export default FeedbackReport;
