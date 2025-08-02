@@ -13,6 +13,30 @@ import Speedometer from './Speedometer';
 
 import CountUp from 'react-countup';
 
+function getPercentScore(value, {
+  min = 0,
+  max = 300,
+  idealMin = 120,
+  idealMax = 200,
+  idealCenter = null
+} = {}) {
+  if (value <= min || value >= max) return 0;
+
+  const center = idealCenter ?? (idealMin + idealMax) / 2;
+
+  if (value < idealMin) {
+    return Math.max(0, ((value - min) / (center - min)) * 100);
+  } else if (value <= idealMax) {
+    const distance = Math.abs(value - center);
+    const maxDistance = Math.max(center - idealMin, idealMax - center);
+    return 100 - (distance / maxDistance) * 100;
+  } else {
+    return Math.max(0, ((max - value) / (max - center)) * 100);
+  }
+}
+
+
+
 const FeedbackReport = React.memo(({ report }) => {
   const { isAuthenticated } = useAuth();
   console.log('📝 FeedbackReport received:', report);
@@ -56,7 +80,9 @@ const FeedbackReport = React.memo(({ report }) => {
   const getHandData = () => {
     return {
       handMetrics: report?.handMetrics || [],
-      // handSessionDuration: report?.handInterviewTime || 'No data',
+      averageSpeedBothHands: (report?.handMetrics[0]?.averageSpeed + report?.handMetrics[1]?.averageSpeed) / 2 || 0,
+      averageErraticnessBothHands: (report?.handMetrics[0]?.averageErraticness + report?.handMetrics[1]?.averageErraticness) / 2 || 0,
+      averageHandsVisibleTime: ((report?.handMetrics[0].totalVisibleTime + report?.handMetrics[1].totalVisibleTime) )/2,      // handSessionDuration: report?.handInterviewTime || 'No data',
       hasData: report?.handMetrics 
     };
   };
@@ -165,15 +191,38 @@ const FeedbackReport = React.memo(({ report }) => {
       return count + (Array.isArray(starData[key]) && starData[key].length > 0 ? 1 : 0);
     }, 0);
 
+    //coontent score
     const bonus = (presentCount / 4) * 25;
     const baseScore = typeof starData.score === 'number' ? starData.score : 0;
-
     const contentScore = Math.round(baseScore + bonus);
+
+    //pitch score
+    const pitchScore = Math.round((voiceData.pitchVariation + voiceData.clarity)/2);
+    
+    //nonverbal score
+    const handVisibilityComponent = Math.round((handData.averageHandsVisibleTime / (parseInt(eyeData.sessionDuration.split(':')[0]) * 60 + parseInt(eyeData.sessionDuration.split(':')[1]))) * 100);
+    const averageSpeedComponent = Math.round(getPercentScore(handData.averageSpeedBothHands), {
+      min: 0,
+      max: 300,
+      idealMin: 120,
+      idealMax: 200,
+      idealCenter: 160
+    })
+    const erraticnessComponent = Math.round((getPercentScore(handData.averageErraticnessBothHands,{
+      min: 0,
+      max: 10,
+      idealMin: 0,
+      idealMax: 6,
+      idealCenter: 3
+    })))
+
+    const nonverbalScore = Math.round((handVisibilityComponent + averageSpeedComponent + erraticnessComponent) / 3);
+    console.log('Nonverbal score:', nonverbalScore);
 
     const scores = [
       { label: 'Content', value: contentScore },
-      { label: 'Pitch', value: 78 },
-      { label: 'Nonverbal', value: eyeData.eyeContactPercentage || 0 }
+      { label: 'Pitch', value: pitchScore },
+      { label: 'Nonverbal', value: nonverbalScore || 0 }
     ];
 
     const overallScore = scores.reduce((sum, score) => sum + score.value, 0) / scores.length;
@@ -392,18 +441,14 @@ const FeedbackReport = React.memo(({ report }) => {
   const renderHandTrackingSection = () => {
     const [minutes, secondsStr] = eyeData.sessionDuration.split(':');
     const totalSeconds = parseInt(minutes) * 60 + parseInt(secondsStr);
-    const averageHandsVisibleTime = ((handData.handMetrics[0].totalVisibleTime + handData.handMetrics[1].totalVisibleTime) )/2;
-    const handsVisiblePercentage = Math.round(averageHandsVisibleTime / totalSeconds) * 100
-
-    const avgSpeedBothHands = (handData.handMetrics[0].averageSpeed + handData.handMetrics[1].averageSpeed) / 2;
+    const handsVisiblePercentage = Math.round(handData.averageHandsVisibleTime / totalSeconds * 100);
   
-
     return (
       <SectionWrapper title="Hand Gesture Analysis" iconClass="fas fa-hand-paper" className="hand-tracking">
         <div className="metric-grid">
           <Speedometer
             label="Average Speed"
-            value={Math.round(avgSpeedBothHands)}
+            value={Math.round(handsVisiblePercentage)}
             min={0}
             max={300}
             unit=" px/s"
@@ -421,7 +466,7 @@ const FeedbackReport = React.memo(({ report }) => {
             max={10}
             unit=""
             zones={[
-              { min: 0, max: 5, color: '#34d399' },
+              { min: 0, max: 6, color: '#34d399' },
               { min: 5, max: 8, color: '#fcd34d' },
               { min: 8, max: 10, color: '#f87171' },
             ]}
