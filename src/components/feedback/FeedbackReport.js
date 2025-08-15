@@ -78,12 +78,25 @@ const FeedbackReport = React.memo(({ report }) => {
 
   // Extract hand tracking data
   const getHandData = () => {
+    const handMetrics = report?.handMetrics || [];
+    
+    // Safely get hand data with fallbacks
+    const hand0 = handMetrics[0] || {};
+    const hand1 = handMetrics[1] || {};
+    
+    const speed0 = hand0.averageSpeed || 0;
+    const speed1 = hand1.averageSpeed || 0;
+    const erratic0 = hand0.averageErraticness || 0;
+    const erratic1 = hand1.averageErraticness || 0;
+    const visible0 = hand0.totalVisibleTime || 0;
+    const visible1 = hand1.totalVisibleTime || 0;
+    
     return {
-      handMetrics: report?.handMetrics || [],
-      averageSpeedBothHands: (report?.handMetrics[0]?.averageSpeed + report?.handMetrics[1]?.averageSpeed) / 2 || 0,
-      averageErraticnessBothHands: (report?.handMetrics[0]?.averageErraticness + report?.handMetrics[1]?.averageErraticness) / 2 || 0,
-      averageHandsVisibleTime: ((report?.handMetrics[0].totalVisibleTime + report?.handMetrics[1].totalVisibleTime) )/2,      // handSessionDuration: report?.handInterviewTime || 'No data',
-      hasData: report?.handMetrics 
+      handMetrics: handMetrics,
+      averageSpeedBothHands: handMetrics.length >= 2 ? (speed0 + speed1) / 2 : (speed0 || 0),
+      averageErraticnessBothHands: handMetrics.length >= 2 ? (erratic0 + erratic1) / 2 : (erratic0 || 0),
+      averageHandsVisibleTime: handMetrics.length >= 2 ? (visible0 + visible1) / 2 : (visible0 || 0),
+      hasData: handMetrics.length > 0
     };
   };
 

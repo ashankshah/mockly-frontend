@@ -20,6 +20,7 @@ const HandTrackingAnalyzer = React.memo(({ videoRef, isActive, onMetricsUpdate }
   const rafRef = useRef();
   const trails = useRef([[], []]);
   const iodRef = useRef(null);
+  const lastUpdateTime = useRef(0);
   const baselineIOD = useRef(null);
   const faceGoodRef = useRef(false);
   const lastEyeLine = useRef(null);
@@ -158,15 +159,23 @@ const HandTrackingAnalyzer = React.memo(({ videoRef, isActive, onMetricsUpdate }
         }
 
         if (feedbackStableCountRef.current >= 1) {
+          // Throttle updates to max 2 times per second to prevent spam
+          const now = Date.now();
+          if (now - lastUpdateTime.current < 500) return; // 500ms throttle
+          lastUpdateTime.current = now;
+
           const handMetricsData = getFinalMetrics(); 
           const fullReport = {
             handMetrics: handMetricsData,
             feedback: fb
           };
 
-          console.log('🖐️ Hand Metrics Reported to Parent:', handMetricsData);
+          // Only log occasionally to avoid console spam
+          if (Math.random() < 0.01) { // Log ~1% of the time
+            console.log('🖐️ Hand Metrics Reported to Parent:', handMetricsData);
+          }
 
-          onMetricsUpdate(fullReport);;
+          onMetricsUpdate(fullReport);
         }
       };
 
