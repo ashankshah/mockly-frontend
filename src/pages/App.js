@@ -397,7 +397,7 @@ const App = () => {
         return (
           <div className="app__main">
             <div className="app__container">
-              <LoadingScreen onDone={handleSetupComplete} />
+              <LoadingScreen onDone={handleSetupComplete} selectedQuestion={selectedQuestion} />
             </div>
           </div>
         );

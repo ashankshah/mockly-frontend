@@ -59,7 +59,7 @@ function SelectedQuestionDisplay({ questionId, variant = 'preview', className = 
         return (
           <div className="selected-question__minimal-content">
             <span className="selected-question__minimal-title">{getTitleText()}</span>
-            <span className="selected-question__minimal-text">{question.text}</span>
+            <span className="selected-question__minimal-text" style={{whiteSpace: 'normal'}}>{question.text}</span>
           </div>
         );
       

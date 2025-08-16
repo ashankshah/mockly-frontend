@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import SelectedQuestionDisplay from './SelectedQuestionDisplay';
 
-const LoadingScreen = ({ onDone }) => {
+const LoadingScreen = ({ onDone, selectedQuestion }) => {
   const [permissionStatus, setPermissionStatus] = useState('pending');
   const [error, setError] = useState('');
   const videoRef = useRef(null);
@@ -81,7 +82,7 @@ const LoadingScreen = ({ onDone }) => {
 
               let direction = '';
               if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                direction = deltaX > 0 ? 'Move a bit to the left' : 'Move a bit to the right';
+                direction = deltaX > 0 ? 'Move a bit to the right' : 'Move a bit to the left';
               } else {
                 direction = deltaY > 0 ? 'Move up slightly' : 'Move down slightly';
               }
@@ -192,206 +193,58 @@ const LoadingScreen = ({ onDone }) => {
     }
   };
 
+  const circleClassName = `setup-screen__guidance-circle ${faceInPosition ? 'setup-screen__guidance-circle--ok' : 'setup-screen__guidance-circle--warn'}`;
+
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      height: '100vh', 
-      background: '#ffffff',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      color: '#2d3748'
-    }}>
-      {/* Mockly Logo/Header
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        marginBottom: '2rem'
-      }}>
-        <div style={{
-          width: '40px',
-          height: '40px',
-          backgroundColor: '#48bb78',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginRight: '12px',
-          fontSize: '20px',
-          fontWeight: 'bold',
-          color: 'white'
-        }}>
-          M
-        </div>
-        <h1 style={{ 
-          fontSize: '2.5rem', 
-          margin: 0,
-          color: '#48bb78',
-          fontWeight: '600'
-        }}>
-          Mockly
-        </h1>
-      </div> */}
+    <div className="setup-screen">
+      <div className="card card--processing">
+        <div className="setup-screen__content">
+          <h2 className="setup-screen__title">Interview Setup</h2>
+          <p className="setup-screen__subtitle">
+            We need access to your camera and microphone for the interview. Position yourself in the circle below.
+          </p>
 
-      <h2 style={{
-        fontSize: '1.8rem',
-        marginBottom: '1rem',
-        textAlign: 'center',
-        color: '#2d3748',
-        fontWeight: '500'
-      }}>
-        Interview Setup
-      </h2>
+          {selectedQuestion && (
+            <SelectedQuestionDisplay 
+              questionId={selectedQuestion} 
+              variant="minimal" 
+              className="setup-screen__question"
+            />
+          )}
 
-      <p style={{ 
-        fontSize: '1.1rem', 
-        marginBottom: '2rem', 
-        textAlign: 'center',
-        maxWidth: '600px',
-        lineHeight: '1.6',
-        color: '#4a5568'
-      }}>
-        We need access to your camera and microphone for the interview. 
-        Position yourself in the green circle below.
-      </p>
-
-      {/* Video Preview Container */}
-      <div style={{ 
-        position: 'relative', 
-        width: 480, 
-        height: 360,
-        marginBottom: '1rem',
-        borderRadius: 16,
-        overflow: 'hidden',
-        boxShadow: '0 10px 25px rgba(72, 187, 120, 0.15)',
-        border: '3px solid #48bb78'
-      }}>
+          <div className="setup-screen__video-container">
         <video
           ref={videoRef}
           autoPlay
           muted
           playsInline
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            background: '#000',
-            transform: 'scaleX(-1)'
-          }}
-        />
+              className="setup-screen__video"
+            />
 
-        {/* Face position guidance circle */}
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          width: 150,
-          height: 150,
-          background: faceInPosition ? 'rgba(72, 187, 120, 0.2)' : 'rgba(72, 187, 120, 0.1)',
-          borderRadius: '50%',
-          transform: 'translate(-50%, -50%)',
-          border: `3px solid ${faceInPosition ? '#48bb78' : '#68d391'}`,
-          pointerEvents: 'none',
-          transition: 'all 0.3s ease',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          {faceInPosition && (
-            <div style={{
-              fontSize: '2rem',
-              color: '#48bb78'
-            }}>
-              ✓
-            </div>
-          )}
+            <div className={circleClassName} aria-hidden="true">
+              {faceInPosition && <span className="setup-screen__check">✓</span>}
         </div>
 
-        {/* Loading overlay */}
         {permissionStatus === 'pending' && (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1.1rem',
-            color: 'white'
-          }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ 
-                width: 40, 
-                height: 40, 
-                border: '4px solid #333',
-                borderTop: '4px solid #48bb78',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite',
-                margin: '0 auto 1rem'
-              }} />
-              Requesting camera access...
-            </div>
+              <div className="setup-screen__overlay" role="status" aria-live="polite">
+                <div className="setup-screen__spinner" />
+                <div className="setup-screen__overlay-text">Requesting camera access...</div>
           </div>
         )}
 
-        {/* Error overlay */}
         {permissionStatus === 'denied' && (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.9)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1.1rem',
-            textAlign: 'center',
-            padding: '2rem'
-          }}>
-            <div>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📷</div>
-              <div style={{ color: '#e53e3e', marginBottom: '1rem' }}>
-                Camera access denied
+              <div className="setup-screen__overlay setup-screen__overlay--error" role="alert">
+                <div className="setup-screen__overlay-icon">📷</div>
+                <div className="setup-screen__overlay-title">Camera access denied</div>
+                <div className="setup-screen__overlay-text">Please allow camera and microphone access to continue</div>
               </div>
-              <div style={{ fontSize: '0.9rem', opacity: 0.8, color: 'white' }}>
-                Please allow camera and microphone access to continue
-              </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* Hidden canvas for face detection */}
-        <canvas
-          ref={canvasRef}
-          style={{ display: 'none' }}
-          width={640}
-          height={480}
-        />
+            <canvas ref={canvasRef} className="setup-screen__canvas" width={640} height={480} />
       </div>
 
-      {/* Face positioning feedback */}
       {permissionStatus === 'granted' && (
-        <div style={{
-          marginBottom: '1.5rem',
-          textAlign: 'center',
-          fontSize: '1rem',
-          padding: '12px 24px',
-          borderRadius: '8px',
-          backgroundColor: faceInPosition ? '#f0fff4' : '#fffdf7',
-          border: `2px solid ${faceInPosition ? '#48bb78' : '#ed8936'}`,
-          color: faceInPosition ? '#2f855a' : '#c05621',
-          minHeight: '48px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          maxWidth: '400px'
-        }}>
+            <div className={`setup-screen__feedback ${faceInPosition ? 'setup-screen__feedback--ok' : 'setup-screen__feedback--warn'}`} aria-live="polite">
           {faceDetected ? (
             <span>
               {faceInPosition ? '✅ ' : '👤 '}
@@ -403,94 +256,21 @@ const LoadingScreen = ({ onDone }) => {
         </div>
       )}
 
-      {/* Status Message
-      <div style={{ 
-        marginBottom: '2rem', 
-        textAlign: 'center',
-        fontSize: '1.1rem',
-        minHeight: '2rem'
-      }}>
-        {permissionStatus === 'pending' && (
-          <span style={{ color: '#48bb78' }}>
-            Requesting camera and microphone access...
-          </span>
-        )}
-        {permissionStatus === 'granted' && (
-          <span style={{ color: '#48bb78' }}>
-            ✅ Camera and microphone ready!
-          </span>
-        )}
+          <div className="setup-screen__actions">
         {permissionStatus === 'denied' && (
-          <span style={{ color: '#e53e3e' }}>
-            ❌ Permission denied. Please allow access to continue.
-          </span>
-        )}
-        {error && (
-          <div style={{ color: '#e53e3e', marginTop: '0.5rem', fontSize: '0.95rem' }}>
-            {error}
-          </div>
-        )}
-      </div> */}
-
-      {/* Action Buttons */}
-      <div style={{ display: 'flex', gap: '1rem' }}>
-        {permissionStatus === 'denied' && (
-          <button
-            style={{
-              padding: '12px 24px',
-              fontSize: '1.1rem',
-              background: '#a0aec0',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 8,
-              cursor: 'pointer',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseOver={(e) => e.target.style.background = '#718096'}
-            onMouseOut={(e) => e.target.style.background = '#a0aec0'}
-            onClick={handleRetry}
-          >
-            Try Again
-          </button>
+              <button className="button" onClick={handleRetry}>Try Again</button>
         )}
 
         <button
-          style={{
-            padding: '12px 36px',
-            fontSize: '1.1rem',
-            background: permissionStatus === 'granted' ? '#48bb78' : '#a0aec0',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 8,
-            cursor: permissionStatus === 'granted' ? 'pointer' : 'not-allowed',
-            transition: 'background-color 0.2s',
-            opacity: permissionStatus === 'granted' ? 1 : 0.6,
-            fontWeight: '500'
-          }}
+              className={`button ${permissionStatus !== 'granted' ? 'button--disabled' : ''}`}
           disabled={permissionStatus !== 'granted'}
-          onMouseOver={(e) => {
-            if (permissionStatus === 'granted') {
-              e.target.style.background = '#38a169';
-            }
-          }}
-          onMouseOut={(e) => {
-            if (permissionStatus === 'granted') {
-              e.target.style.background = '#48bb78';
-            }
-          }}
           onClick={handleDone}
         >
           {permissionStatus === 'granted' ? 'Start Interview' : 'Waiting for Access'}
         </button>
       </div>
-
-      {/* CSS Animation */}
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
+        </div>
+      </div>
     </div>
   );
 };
