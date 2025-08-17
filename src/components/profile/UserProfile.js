@@ -19,6 +19,9 @@ const UserProfile = ({ onNavigateToInterview, currentView }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [expandedCategories, setExpandedCategories] = useState(new Set());
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
+  const [recalculatingStats, setRecalculatingStats] = useState(false);
+  const [selectedSession, setSelectedSession] = useState(null);
+  const [showSessionPopup, setShowSessionPopup] = useState(false);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -139,7 +142,7 @@ const UserProfile = ({ onNavigateToInterview, currentView }) => {
             lastName: user.last_name,
             joinedDate: user.created_at
           },
-          stats: stats,
+          stats: profileData?.stats,
           progressRecords: progressData
         };
 
@@ -166,7 +169,13 @@ const UserProfile = ({ onNavigateToInterview, currentView }) => {
   };
 
   const formatScore = (score) => {
-    return score ? score.toFixed(1) : 'N/A';
+    if (score === null || score === undefined) {
+      return 'N/A';
+    }
+    if (typeof score === 'number' && !isNaN(score)) {
+      return score.toFixed(1);
+    }
+    return 'N/A';
   };
 
   const formatDate = (dateString) => {
@@ -301,6 +310,58 @@ const UserProfile = ({ onNavigateToInterview, currentView }) => {
   // Handle view mode toggle
   const handleViewModeToggle = () => {
     setViewMode(viewMode === 'list' ? 'grid' : 'list');
+  };
+
+  // Handle stats recalculation
+  const handleRecalculateStats = async () => {
+    setRecalculatingStats(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/recalculate-stats`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        }
+      });
+
+      if (response.ok) {
+        // Refresh profile data to get updated stats
+        await fetchProfileData();
+      } else {
+        setError('Failed to recalculate statistics');
+      }
+    } catch (error) {
+      console.error('Error recalculating stats:', error);
+      setError('Network error while recalculating statistics');
+    } finally {
+      setRecalculatingStats(false);
+    }
+  };
+
+  // Handle session click
+  const handleSessionClick = (session) => {
+    setSelectedSession(session);
+    setShowSessionPopup(true);
+  };
+
+  // Close session popup
+  const closeSessionPopup = () => {
+    setShowSessionPopup(false);
+    setSelectedSession(null);
+  };
+
+
+
+  // Parse STAR analysis from JSON string
+  const parseStarAnalysis = (starString) => {
+    try {
+      return starString ? JSON.parse(starString) : null;
+    } catch (error) {
+      console.error('Error parsing STAR analysis:', error);
+      return null;
+    }
   };
 
   // Get question status
@@ -529,22 +590,39 @@ const UserProfile = ({ onNavigateToInterview, currentView }) => {
       </div>
 
       {/* Quick Stats */}
-      <div className="quick-stats">
-        <div className="stat-card">
-          <div className="stat-number">{stats?.total_sessions || 0}</div>
-          <div className="stat-label">Total Sessions</div>
+      <div className="stats-section">
+        <div className="stats-header">
+          <h3>Your Statistics</h3>
+          <button 
+            className="reload-stats-btn" 
+            onClick={handleRecalculateStats}
+            disabled={recalculatingStats}
+            title="Recalculate Statistics"
+          >
+            <i className={`fas fa-sync-alt ${recalculatingStats ? 'spinning' : ''}`}></i>
+            {recalculatingStats ? 'Updating...' : 'Refresh Stats'}
+          </button>
         </div>
+        <div className="quick-stats">
+          <div className="stat-card">
+            <div className="stat-number">{stats?.total_sessions || 0}</div>
+            <div className="stat-label">Total Sessions</div>
+          </div>
         <div className="stat-card">
           <div className="stat-number">{formatScore(stats?.average_overall_score)}</div>
           <div className="stat-label">Average Score</div>
+          {!stats?.average_overall_score && stats?.total_sessions === 0 && (
+            <div className="stat-hint">Complete an interview to see your average score</div>
+          )}
         </div>
         <div className="stat-card">
           <div className="stat-number">{formatScore(stats?.best_overall_score)}</div>
           <div className="stat-label">Best Score</div>
+          {!stats?.best_overall_score && stats?.total_sessions === 0 && (
+            <div className="stat-hint">Complete an interview to see your best score</div>
+          )}
         </div>
-        <div className="stat-card">
-          <div className="stat-number">{stats?.streak_days || 0}</div>
-          <div className="stat-label">Day Streak</div>
+
         </div>
       </div>
 
@@ -554,10 +632,28 @@ const UserProfile = ({ onNavigateToInterview, currentView }) => {
           <h3>Recent Practice Sessions</h3>
           <div className="sessions-list">
             {recent_progress.slice(0, 5).map((session) => (
-              <div key={session.id} className="session-item">
-                <div className="session-date">{formatDate(session.session_date)}</div>
-                <div className="session-type">{session.question_type || 'General'}</div>
-                <div className="session-score">Score: {formatScore(session.overall_score)}</div>
+              <div 
+                key={session.id} 
+                className="session-item clickable"
+                onClick={() => handleSessionClick(session)}
+              >
+                <div className="session-info">
+                  <div className="session-date">{formatDate(session.session_date)}</div>
+                  <div className="session-type">{session.question_type || 'General'}</div>
+                  <div className="session-question-preview">
+                    {session.question_text ? 
+                      (session.question_text.length > 60 ? 
+                        session.question_text.substring(0, 60) + '...' : 
+                        session.question_text
+                      ) : 
+                      'No question recorded'
+                    }
+                  </div>
+                </div>
+                <div className="session-score-section">
+                  <div className="session-score">Score: {formatScore(session.overall_score)}</div>
+                  <i className="fas fa-chevron-right session-arrow"></i>
+                </div>
               </div>
             ))}
           </div>
@@ -565,6 +661,117 @@ const UserProfile = ({ onNavigateToInterview, currentView }) => {
       )}
 
       {error && <div className="error-message">{error}</div>}
+
+      {/* Session Details Popup */}
+      {showSessionPopup && selectedSession && (
+        <div className="session-popup-overlay" onClick={closeSessionPopup}>
+          <div className="session-popup" onClick={(e) => e.stopPropagation()}>
+            <div className="popup-header">
+              <h3>Session Details</h3>
+              <button className="close-btn" onClick={closeSessionPopup}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div className="popup-content">
+              <div className="session-meta">
+                <div className="meta-item">
+                  <span className="meta-label">Date:</span>
+                  <span className="meta-value">{formatDate(selectedSession.session_date)}</span>
+                </div>
+                <div className="meta-item">
+                  <span className="meta-label">Type:</span>
+                  <span className="meta-value">{selectedSession.question_type || 'General'}</span>
+                </div>
+                <div className="meta-item">
+                  <span className="meta-label">Duration:</span>
+                  <span className="meta-value">
+                    {selectedSession.session_duration_seconds ? 
+                      `${Math.floor(selectedSession.session_duration_seconds / 60)}:${(selectedSession.session_duration_seconds % 60).toString().padStart(2, '0')}` : 
+                      'Not recorded'
+                    }
+                  </span>
+                </div>
+              </div>
+
+              <div className="question-section">
+                <h4>Question</h4>
+                <div className="question-text">
+                  {selectedSession.question_text || 'No question recorded'}
+                </div>
+              </div>
+
+              <div className="scores-section">
+                <h4>Score Breakdown</h4>
+                <div className="score-grid">
+                  <div className="score-item">
+                    <span className="score-label">Content</span>
+                    <span className="score-value">{formatScore(selectedSession.content_score)}</span>
+                  </div>
+                  <div className="score-item">
+                    <span className="score-label">Voice</span>
+                    <span className="score-value">{formatScore(selectedSession.voice_score)}</span>
+                  </div>
+                  <div className="score-item">
+                    <span className="score-label">Face</span>
+                    <span className="score-value">{formatScore(selectedSession.face_score)}</span>
+                  </div>
+                  <div className="score-item overall">
+                    <span className="score-label">Overall</span>
+                    <span className="score-value">{formatScore(selectedSession.overall_score)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="response-section">
+                <h4>Your Response</h4>
+                <div className="response-text">
+                  {selectedSession.transcript || 'No transcript available'}
+                </div>
+              </div>
+
+              {selectedSession.star_analysis && (
+                <div className="star-section">
+                  <h4>STAR Analysis</h4>
+                  <div className="star-content">
+                    {(() => {
+                      const starData = parseStarAnalysis(selectedSession.star_analysis);
+                      if (!starData) return 'No STAR analysis available';
+                      
+                      return (
+                        <div className="star-breakdown">
+                          {starData.situation && (
+                            <div className="star-item">
+                              <strong>Situation:</strong> {starData.situation}
+                            </div>
+                          )}
+                          {starData.task && (
+                            <div className="star-item">
+                              <strong>Task:</strong> {starData.task}
+                            </div>
+                          )}
+                          {starData.action && (
+                            <div className="star-item">
+                              <strong>Action:</strong> {starData.action}
+                            </div>
+                          )}
+                          {starData.result && (
+                            <div className="star-item">
+                              <strong>Result:</strong> {starData.result}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              )}
+
+
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
