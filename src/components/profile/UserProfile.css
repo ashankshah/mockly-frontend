@@ -169,6 +169,11 @@
   background: #2d8a5f;
 }
 
+.grid-btn.active {
+  background: #2d8a5f;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .shuffle-btn {
   background: #3BA676;
 }
@@ -431,6 +436,103 @@
   font-size: 16px;
 }
 
+/* Questions Grid Layout */
+.questions-grid {
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  animation: slideDown 0.3s ease-out;
+}
+
+.question-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.question-card:hover {
+  border-color: #3BA676;
+  box-shadow: 0 4px 12px rgba(59, 166, 118, 0.15);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.card-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-status i {
+  font-size: 18px;
+}
+
+.card-star {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-star i {
+  font-size: 16px;
+  color: #94a3b8;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.card-star i:hover {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  transform: scale(1.1);
+}
+
+.card-star i.starred {
+  color: #f59e0b;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.4;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-difficulty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
 /* Quick Stats */
 .quick-stats {
   display: grid;
@@ -617,6 +719,16 @@
     align-items: flex-start;
     gap: 8px;
   }
+  
+  .questions-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    padding: 16px;
+    gap: 12px;
+  }
+  
+  .question-card {
+    padding: 16px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -630,5 +742,15 @@
   
   .nav-section span {
     display: none;
+  }
+  
+  .questions-grid {
+    grid-template-columns: 1fr;
+    padding: 12px;
+    gap: 8px;
+  }
+  
+  .question-card {
+    padding: 12px;
   }
 } 

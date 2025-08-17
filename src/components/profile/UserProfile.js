@@ -18,6 +18,7 @@ const UserProfile = ({ onNavigateToInterview, currentView }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [expandedCategories, setExpandedCategories] = useState(new Set());
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -297,6 +298,11 @@ const UserProfile = ({ onNavigateToInterview, currentView }) => {
     return starredQuestionIds.has(questionId);
   };
 
+  // Handle view mode toggle
+  const handleViewModeToggle = () => {
+    setViewMode(viewMode === 'list' ? 'grid' : 'list');
+  };
+
   // Get question status
   const getQuestionStatus = (questionId) => {
     if (isQuestionCompleted(questionId)) {
@@ -402,8 +408,12 @@ const UserProfile = ({ onNavigateToInterview, currentView }) => {
           <i className="fas fa-search search-icon"></i>
         </div>
         <div className="control-buttons">
-          <button className="control-btn grid-btn" title="Grid View">
-            <i className="fas fa-th"></i>
+          <button 
+            className={`control-btn grid-btn ${viewMode === 'grid' ? 'active' : ''}`} 
+            title={viewMode === 'list' ? 'Grid View' : 'List View'}
+            onClick={handleViewModeToggle}
+          >
+            <i className={`fas ${viewMode === 'list' ? 'fa-th' : 'fa-list'}`}></i>
           </button>
           <button className="control-btn shuffle-btn" title="Random Practice">
             <i className="fas fa-random"></i>
@@ -447,8 +457,8 @@ const UserProfile = ({ onNavigateToInterview, currentView }) => {
                 </div>
               </div>
               
-              {/* Questions Table */}
-              {isExpanded && (
+              {/* Questions Display */}
+              {isExpanded && viewMode === 'list' && (
                 <div className="questions-table">
                   <div className="table-header">
                     <div className="header-cell">Status</div>
@@ -481,6 +491,36 @@ const UserProfile = ({ onNavigateToInterview, currentView }) => {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Questions Grid */}
+              {isExpanded && viewMode === 'grid' && (
+                <div className="questions-grid">
+                  {category.questions.map((question) => (
+                    <div 
+                      key={question.id} 
+                      className="question-card"
+                      onClick={() => handleQuestionClick(question.id)}
+                    >
+                      <div className="card-header">
+                        <div className="card-status">
+                          {getStatusIcon(getQuestionStatus(question.id))}
+                        </div>
+                        <div className="card-star">
+                          <i className={`fas fa-star ${isQuestionStarred(question.id) ? 'starred' : 'star-outline'}`} onClick={(e) => handleStarClick(e, question.id)}></i>
+                        </div>
+                      </div>
+                      <div className="card-content">
+                        <h4 className="card-title">{question.title}</h4>
+                        <div className="card-difficulty">
+                          <span style={{ color: getDifficultyColor(question.difficulty) }}>
+                            {question.difficulty}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
