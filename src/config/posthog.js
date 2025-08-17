@@ -27,8 +27,8 @@ const POSTHOG_CONFIG = {
     // Automatically capture clicks and form submissions
     autocapture: true,
     
-    // Disable in development to avoid polluting data
-    disabled: process.env.NODE_ENV === 'development',
+    // enable posthog for all envs
+    disabled: false,
     
     // Cross-domain tracking
     cross_subdomain_cookie: false,
