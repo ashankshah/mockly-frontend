@@ -455,7 +455,6 @@ const UserProfile = ({ onNavigateToInterview, currentView }) => {
                     <div className="header-cell">Star</div>
                     <div className="header-cell">Question</div>
                     <div className="header-cell">Difficulty</div>
-                    <div className="header-cell">Solution</div>
                   </div>
                   <div className="table-body">
                     {category.questions.map((question) => (
@@ -478,11 +477,6 @@ const UserProfile = ({ onNavigateToInterview, currentView }) => {
                           <span style={{ color: getDifficultyColor(question.difficulty) }}>
                             {question.difficulty}
                           </span>
-                        </div>
-                        <div className="question-cell solution-cell">
-                          {question.hasVideo && (
-                            <i className="fas fa-video" style={{ color: '#3BA676' }}></i>
-                          )}
                         </div>
                       </div>
                     ))}

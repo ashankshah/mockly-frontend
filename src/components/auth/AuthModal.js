@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+// import { useAuth } from '../../contexts/AuthContext';
+import { trackLearnStartupEvents } from '../../config/posthog';
 import './AuthModal.css';
 
 // Inline SVG components for icons
@@ -18,119 +19,126 @@ const GoogleIcon = ({ size = 20 }) => (
   </svg>
 );
 
-const LinkedInIcon = ({ size = 20 }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    viewBox="0 0 24 24" 
-    width={size} 
-    height={size}
-    style={{ marginRight: '8px' }}
-  >
-    <path fill="#0077B5" d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-  </svg>
-);
+// const LinkedInIcon = ({ size = 20 }) => (
+//   <svg 
+//     xmlns="http://www.w3.org/2000/svg" 
+//     viewBox="0 0 24 24" 
+//     width={size} 
+//     height={size}
+//     style={{ marginRight: '8px' }}
+//   >
+//     <path fill="#0077B5" d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+//   </svg>
+// );
 
 const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }) => {
   const [activeTab, setActiveTab] = useState(defaultTab);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    firstName: '',
-    lastName: '',
-    confirmPassword: ''
-  });
+  // Email/password authentication temporarily disabled
+  // const [formData, setFormData] = useState({
+  //   email: '',
+  //   password: '',
+  //   firstName: '',
+  //   lastName: '',
+  //   confirmPassword: ''
+  // });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { login, register } = useAuth();
+  // const { login, register } = useAuth();
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-    setError(''); // Clear error when user starts typing
-  };
+  // const handleInputChange = (e) => {
+  //   setFormData({
+  //     ...formData,
+  //     [e.target.name]: e.target.value
+  //   });
+  //   setError('');
+  // };
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  // const handleLogin = async (e) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   setError('');
+  //   const result = await login(formData.email, formData.password);
+  //   if (result.success) {
+  //     onClose();
+  //     setFormData({ email: '', password: '', firstName: '', lastName: '', confirmPassword: '' });
+  //   } else {
+  //     setError(result.error);
+  //   }
+  //   setLoading(false);
+  // };
 
-    const result = await login(formData.email, formData.password);
-    
-    if (result.success) {
-      onClose();
-      setFormData({
-        email: '',
-        password: '',
-        firstName: '',
-        lastName: '',
-        confirmPassword: ''
-      });
-    } else {
-      setError(result.error);
-    }
-    
-    setLoading(false);
-  };
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long');
-      setLoading(false);
-      return;
-    }
-
-    const result = await register(
-      formData.email,
-      formData.password,
-      formData.firstName,
-      formData.lastName
-    );
-    
-    if (result.success) {
-      onClose();
-      setFormData({
-        email: '',
-        password: '',
-        firstName: '',
-        lastName: '',
-        confirmPassword: ''
-      });
-    } else {
-      setError(result.error);
-    }
-    
-    setLoading(false);
-  };
+  // const handleRegister = async (e) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   setError('');
+  //   if (formData.password !== formData.confirmPassword) {
+  //     setError('Passwords do not match');
+  //     setLoading(false);
+  //     return;
+  //   }
+  //   if (formData.password.length < 8) {
+  //     setError('Password must be at least 8 characters long');
+  //     setLoading(false);
+  //     return;
+  //   }
+  //   const result = await register(
+  //     formData.email,
+  //     formData.password,
+  //     formData.firstName,
+  //     formData.lastName
+  //   );
+  //   if (result.success) {
+  //     onClose();
+  //     setFormData({ email: '', password: '', firstName: '', lastName: '', confirmPassword: '' });
+  //   } else {
+  //     setError(result.error);
+  //   }
+  //   setLoading(false);
+  // };
 
   const handleOAuthLogin = async (provider) => {
     try {
       setLoading(true);
       setError('');
       
+      console.log(`🔗 Attempting OAuth login with ${provider}`);
+      console.log(`🔍 API_BASE_URL value:`, API_BASE_URL);
+      console.log(`📡 Full API URL: ${API_BASE_URL}/auth/${provider}/authorize`);
+      
+      // Track signup attempt for lean startup analytics
+      trackLearnStartupEvents.userSignedUp(provider, {
+        userType: 'free',
+        source: 'auth_modal',
+      });
+      
       // Fetch the authorization URL from the backend
       const response = await fetch(`${API_BASE_URL}/auth/${provider}/authorize`);
       
+      console.log(`📊 Response status: ${response.status}`);
+      console.log(`📋 Response headers:`, Object.fromEntries(response.headers.entries()));
+      
       if (!response.ok) {
-        throw new Error(`Failed to get authorization URL: ${response.status}`);
+        // Get the response text to see what error we're getting
+        const errorText = await response.text();
+        console.error(`❌ API Error Response:`, errorText);
+        throw new Error(`Failed to get authorization URL: ${response.status} - ${errorText}`);
+      }
+      
+      // Check if response is actually JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const responseText = await response.text();
+        console.error(`❌ Expected JSON but got:`, responseText);
+        throw new Error(`Server returned HTML instead of JSON. Check if API endpoint exists.`);
       }
       
       const data = await response.json();
+      console.log(`✅ Authorization data received:`, data);
       
       if (data.authorization_url) {
+        console.log(`🚀 Redirecting to:`, data.authorization_url);
         // Redirect to the authorization URL
         window.location.href = data.authorization_url;
       } else {
@@ -138,7 +146,7 @@ const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }) => {
       }
     } catch (error) {
       console.error('OAuth login error:', error);
-      setError('Failed to start OAuth login. Please try again.');
+      setError(`Failed to start OAuth login: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -150,20 +158,13 @@ const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }) => {
     <div className="auth-modal-overlay" onClick={onClose}>
       <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
         <div className="auth-modal-header">
-          <div className="auth-tabs">
-            <button
-              className={`auth-tab ${activeTab === 'login' ? 'active' : ''}`}
-              onClick={() => setActiveTab('login')}
-            >
-              Sign In
-            </button>
-            <button
-              className={`auth-tab ${activeTab === 'register' ? 'active' : ''}`}
-              onClick={() => setActiveTab('register')}
-            >
-              Sign Up
-            </button>
-          </div>
+          {/**
+           * Sign-in tab hidden for simplified Google-only flow. Keeping commented for later re-enable.
+           *
+           * <div className="auth-tabs">
+           *   <button className="auth-tab active">Sign In</button>
+           * </div>
+           */}
           <button className="auth-modal-close" onClick={onClose}>×</button>
         </div>
 
@@ -178,107 +179,117 @@ const AuthModal = ({ isOpen, onClose, defaultTab = 'login' }) => {
               <GoogleIcon />
               Continue with Google
             </button>
-            <button
-              className="oauth-button linkedin"
-              onClick={() => handleOAuthLogin('linkedin')}
-              disabled={loading}
-            >
-              <LinkedInIcon />
-              Continue with LinkedIn
-            </button>
+            {/**
+             * LinkedIn OAuth temporarily disabled. Keeping code commented for later re-enable.
+             *
+             * <button
+             *   className="oauth-button linkedin"
+             *   onClick={() => handleOAuthLogin('linkedin')}
+             *   disabled={loading}
+             * >
+             *   <LinkedInIcon />
+             *   Continue with LinkedIn
+             * </button>
+             */}
           </div>
 
-          <div className="auth-divider">
-            <span>or</span>
-          </div>
+          {/**
+           * Divider and Email/Password forms temporarily disabled. Keeping code commented for later re-enable.
+           *
+           * <div className="auth-divider">
+           *   <span>or</span>
+           * </div>
+           *
+           * {error && <div className="auth-error">{error}</div>}
+           *
+           * {activeTab === 'login' ? (
+           *   <form onSubmit={handleLogin} className="auth-form">
+           *     <div className="form-group">
+           *       <input
+           *         type="email"
+           *         name="email"
+           *         placeholder="Email"
+           *         value={formData.email}
+           *         onChange={handleInputChange}
+           *         required
+           *       />
+           *     </div>
+           *     <div className="form-group">
+           *       <input
+           *         type="password"
+           *         name="password"
+           *         placeholder="Password"
+           *         value={formData.password}
+           *         onChange={handleInputChange}
+           *         required
+           *       />
+           *     </div>
+           *     <button type="submit" className="auth-submit" disabled={loading}>
+           *       {loading ? 'Signing In...' : 'Sign In'}
+           *     </button>
+           *   </form>
+           * ) : (
+           *   <form onSubmit={handleRegister} className="auth-form">
+           *     <div className="form-row">
+           *       <div className="form-group">
+           *         <input
+           *           type="text"
+           *           name="firstName"
+           *           placeholder="First Name"
+           *           value={formData.firstName}
+           *           onChange={handleInputChange}
+           *           required
+           *         />
+           *       </div>
+           *       <div className="form-group">
+           *         <input
+           *           type="text"
+           *           name="lastName"
+           *           placeholder="Last Name"
+           *           value={formData.lastName}
+           *           onChange={handleInputChange}
+           *           required
+           *         />
+           *       </div>
+           *     </div>
+           *     <div className="form-group">
+           *       <input
+           *         type="email"
+           *         name="email"
+           *         placeholder="Email"
+           *         value={formData.email}
+           *         onChange={handleInputChange}
+           *         required
+           *       />
+           *     </div>
+           *     <div className="form-group">
+           *       <input
+           *         type="password"
+           *         name="password"
+           *         placeholder="Password"
+           *         value={formData.password}
+           *         onChange={handleInputChange}
+           *         required
+           *       />
+           *     </div>
+           *     <div className="form-group">
+           *       <input
+           *         type="password"
+           *         name="confirmPassword"
+           *         placeholder="Confirm Password"
+           *         value={formData.confirmPassword}
+           *         onChange={handleInputChange}
+           *         required
+           *       />
+           *     </div>
+           *     <button type="submit" className="auth-submit" disabled={loading}>
+           *       {loading ? 'Creating Account...' : 'Create Account'}
+           *     </button>
+           *   </form>
+           * )}
+           */}
 
           {error && <div className="auth-error">{error}</div>}
-
-          {activeTab === 'login' ? (
-            <form onSubmit={handleLogin} className="auth-form">
-              <div className="form-group">
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <button type="submit" className="auth-submit" disabled={loading}>
-                {loading ? 'Signing In...' : 'Sign In'}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleRegister} className="auth-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <input
-                    type="text"
-                    name="firstName"
-                    placeholder="First Name"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <input
-                    type="text"
-                    name="lastName"
-                    placeholder="Last Name"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="form-group">
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  placeholder="Confirm Password"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <button type="submit" className="auth-submit" disabled={loading}>
-                {loading ? 'Creating Account...' : 'Create Account'}
-              </button>
-            </form>
-          )}
         </div>
       </div>
     </div>

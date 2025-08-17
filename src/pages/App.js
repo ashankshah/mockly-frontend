@@ -18,6 +18,7 @@ import ProcessingScreen from '../components/feedback/ProcessingScreen';
 import OAuthCallback from '../components/auth/OAuthCallback';
 import { DevHelpers } from '../config/devConfig';
 import { UI_TEXT } from '../constants/interviewConstants';
+import { initializePostHog, trackLearnStartupEvents, identifyUser } from '../config/posthog';
 import '../styles/theme.css';
 
 const App = () => {
@@ -32,7 +33,26 @@ const App = () => {
 
 
   // Get authentication state
-  const { isAuthenticated, loading, getAuthHeaders } = useAuth();
+  const { isAuthenticated, loading, getAuthHeaders, user } = useAuth();
+
+  // Initialize PostHog on app mount
+  useEffect(() => {
+    initializePostHog();
+    console.log('📊 PostHog initialized for lean startup analytics');
+  }, []);
+
+  // Track user identification when authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      identifyUser(user.id, {
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        signup_date: user.created_at,
+      });
+      console.log('👤 User identified in PostHog:', user.email);
+    }
+  }, [isAuthenticated, user]);
 
   // Monitor authentication state and redirect if needed
   useEffect(() => {
@@ -65,6 +85,20 @@ const App = () => {
       eyeContactPercentage: metrics.eyeContactPercentage,
       smilePercentage: metrics.smilePercentage,
       sessionDuration: metrics.sessionDuration
+    });
+
+    // Track interview completion for lean startup analytics
+    trackLearnStartupEvents.interviewCompleted({
+      contentScore: metrics.contentScore,
+      voiceScore: metrics.voiceScore,
+      faceScore: metrics.faceScore,
+      overallScore: metrics.overallScore,
+      sessionDuration: metrics.sessionDuration,
+      questionType: 'behavioral',
+      sessionId: metrics.sessionId || Date.now().toString(),
+      eyeContactPercentage: metrics.eyeContactPercentage,
+      smilePercentage: metrics.smilePercentage,
+      transcriptLength: transcript?.length || 0,
     });
     
     setIsProcessing(true);
@@ -314,9 +348,13 @@ const App = () => {
 
   const handleSetupComplete = useCallback((mediaStream) => {
     console.log('✅ Setup complete, starting interview with preset stream');
+    
+    // Track interview start for lean startup analytics
+    trackLearnStartupEvents.interviewStarted('behavioral', selectedQuestion);
+    
     setPresetMediaStream(mediaStream);
     setCurrentView('video-interview');
-  }, []);
+  }, [selectedQuestion]);
 
   // Handle interview end (back to question selection)
   const handleInterviewEnd = useCallback(() => {
