@@ -227,6 +227,75 @@ const App = () => {
     }, 2000); // 2 second delay
   }, [isAuthenticated, saveUserProgress]);
 
+  // Calculate scores from metrics (moved from FeedbackReport)
+  const calculateScores = (metrics) => {
+    // Helper function from FeedbackReport
+    const getPercentScore = (value, {
+      min = 0,
+      max = 300,
+      idealMin = 120,
+      idealMax = 200,
+      idealCenter = null
+    } = {}) => {
+      const center = idealCenter || (idealMin + idealMax) / 2;
+      if (value >= idealMin && value <= idealMax) {
+        return 100;
+      } else if (value < center) {
+        return Math.max(0, ((value - min) / (center - min)) * 100);
+      } else {
+        return Math.max(0, ((max - value) / (max - center)) * 100);
+      }
+    };
+
+    // Extract voice data
+    const voiceData = metrics?.voiceAnalysis || metrics || {};
+    
+    // Extract hand data  
+    const handData = metrics?.handTracking || metrics || {};
+    
+    // Extract eye data
+    const eyeData = {
+      eyeContactPercentage: metrics?.eyeContactPercentage || 0,
+      smilePercentage: metrics?.smilePercentage || 0,
+      sessionDuration: metrics?.sessionDuration || '00:00'
+    };
+
+    // Content score calculation (simplified - would need STAR analysis for real calculation)
+    const contentScore = 0; // Will be calculated by backend based on transcript
+    
+    // Voice/Pitch score calculation
+    const pitchScore = Math.round(((voiceData.pitchVariation || 0) + (voiceData.clarity || 0)) / 2);
+    
+    // Nonverbal/Face score calculation
+    let nonverbalScore = 0;
+    if (handData.averageHandsVisibleTime && eyeData.sessionDuration) {
+      const sessionDurationInSeconds = parseInt(eyeData.sessionDuration.split(':')[0]) * 60 + parseInt(eyeData.sessionDuration.split(':')[1]);
+      const handVisibilityComponent = Math.round((handData.averageHandsVisibleTime / sessionDurationInSeconds) * 100);
+      const averageSpeedComponent = Math.round(getPercentScore(handData.averageSpeedBothHands, {
+        min: 0,
+        max: 300,
+        idealMin: 120,
+        idealMax: 200,
+        idealCenter: 160
+      }));
+      const erraticnessComponent = Math.round(getPercentScore(handData.averageErraticnessBothHands, {
+        min: 0,
+        max: 10,
+        idealMin: 0,
+        idealMax: 6,
+        idealCenter: 3
+      }));
+      
+      nonverbalScore = Math.round((handVisibilityComponent + averageSpeedComponent + erraticnessComponent) / 3);
+    }
+
+    return {
+      content_score: contentScore,
+      voice_score: pitchScore,
+      face_score: nonverbalScore
+    };
+  };
+
   // Real API processing function with debugging
   const handleRealProcessing = useCallback(async (metrics, transcript, questionId) => {
     console.log('🌐 STEP 5A - Real API processing started');
@@ -234,9 +303,16 @@ const App = () => {
     console.log('📝 Input transcript to API:', transcript);
     console.log('🎯 Question ID passed to handleRealProcessing:', questionId);
     
+    // Calculate scores from metrics
+    const calculatedScores = calculateScores(metrics);
+    console.log('📊 Calculated scores:', calculatedScores);
+    
     const requestPayload = {
       transcript,
-      metrics,
+      metrics: {
+        ...metrics,
+        ...calculatedScores
+      },
       // Include eye tracking data explicitly in the payload
       eyeContactPercentage: metrics.eyeContactPercentage,
       smilePercentage: metrics.smilePercentage,
