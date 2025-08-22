@@ -229,7 +229,16 @@ const FeedbackReport = React.memo(({ report }) => {
       idealCenter: 3
     })))
 
-    const nonverbalScore = Math.round((handVisibilityComponent + averageSpeedComponent + erraticnessComponent) / 3);
+    const smileComponent = Math.round((getPercentScore(eyeData.smilePercentage, {
+      min: 0,
+      max: 100,
+      idealMin: 20,
+      idealMax: 60,
+      idealCenter: 40
+    })
+    ))
+
+    const nonverbalScore = Math.round((handVisibilityComponent + averageSpeedComponent + erraticnessComponent + eyeData.eyeContactPercentage, smileComponent) / 5);
     console.log('Nonverbal score:', nonverbalScore);
 
     const scores = [
