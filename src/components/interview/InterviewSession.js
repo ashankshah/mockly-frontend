@@ -10,7 +10,7 @@ import { UI_TEXT, DEV_MESSAGES, getAllQuestions, BEHAVIORAL_QUESTIONS, getQuesti
 import { useCredits } from '../../hooks/useCredits';
 import { useAuth } from '../../contexts/AuthContext';
 
-const InterviewSession = React.memo(({ onStart, initialQuestion = '' }) => {
+const InterviewSession = React.memo(({ onStart, initialQuestion = '', onShowAuthModal }) => {
   const [selectedQuestion, setSelectedQuestion] = useState(initialQuestion);
   const [validationError, setValidationError] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -154,7 +154,18 @@ const InterviewSession = React.memo(({ onStart, initialQuestion = '' }) => {
     if (!isAuthenticated) {
       return (
         <div className="credits-info credits-info--signin">
-          Sign In to Get Started!
+          <span 
+            className="signin-link" 
+            onClick={onShowAuthModal}
+            style={{ 
+              textDecoration: 'underline', 
+              fontWeight: 'bold', 
+              cursor: 'pointer',
+              color: 'inherit'
+            }}
+          >
+            Sign In
+          </span> to Get Started!
         </div>
       );
     }
