@@ -6,13 +6,14 @@
 import React, { useState } from 'react';
 import SelectedQuestionDisplay from './SelectedQuestionDisplay';
 import { DevHelpers } from '../../config/devConfig';
-import { UI_TEXT, DEV_MESSAGES, getAllQuestions } from '../../constants/interviewConstants';
+import { UI_TEXT, DEV_MESSAGES, getAllQuestions, BEHAVIORAL_QUESTIONS, getQuestionsByCategory } from '../../constants/interviewConstants';
 import { useCredits } from '../../hooks/useCredits';
 import { useAuth } from '../../contexts/AuthContext';
 
 const InterviewSession = React.memo(({ onStart, initialQuestion = '' }) => {
   const [selectedQuestion, setSelectedQuestion] = useState(initialQuestion);
   const [validationError, setValidationError] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const { credits, loading } = useCredits();
   const { isAuthenticated } = useAuth();
 
@@ -34,6 +35,28 @@ const InterviewSession = React.memo(({ onStart, initialQuestion = '' }) => {
     if (onStart) onStart(selectedQuestion);
   };
 
+  const handleCategoryChange = (event) => {
+    const newCategory = event.target.value;
+    setSelectedCategory(newCategory);
+    // Clear validation and selection if the current question is not in the new category
+    setValidationError('');
+    if (newCategory) {
+      const questionsInCategory = getQuestionsByCategory(newCategory);
+      const stillValid = questionsInCategory.some(q => q.id === selectedQuestion);
+      if (!stillValid) {
+        setSelectedQuestion('');
+      }
+    }
+  };
+
+  const handleRandomQuestion = () => {
+    const pool = selectedCategory ? getQuestionsByCategory(selectedCategory) : getAllQuestions();
+    if (!pool.length) return;
+    const random = pool[Math.floor(Math.random() * pool.length)];
+    setSelectedQuestion(random.id);
+    setValidationError('');
+  };
+
   const handleQuestionChange = (event) => {
     setSelectedQuestion(event.target.value);
     setValidationError(''); // Clear validation error when user selects a question
@@ -47,36 +70,76 @@ const InterviewSession = React.memo(({ onStart, initialQuestion = '' }) => {
 
   const renderValidationError = () => (
     validationError && (
-      <div className="interview-session__validation-error">
+      <div id="question-error" className="interview-session__validation-error" role="alert" aria-live="assertive">
         <i className="fas fa-exclamation-triangle icon-sm icon-error"></i>
         {validationError}
       </div>
     )
   );
 
-  const renderQuestionSelector = () => (
-    <div className="question-selector">
-      <label htmlFor="question-select" className="question-selector__label">
-        <i className="fas fa-question-circle icon-sm icon-primary"></i>
-        Choose your question:
-      </label>
-      <select
-        id="question-select"
-        className={`question-selector__dropdown ${validationError ? 'question-selector__dropdown--error' : ''}`}
-        value={selectedQuestion}
-        onChange={handleQuestionChange}
-        required
-      >
-        <option value="">Select a behavioral question...</option>
-        {getAllQuestions().map((question) => (
-          <option key={question.id} value={question.id}>
-            {question.text}
-          </option>
-        ))}
-      </select>
-      {renderValidationError()}
-    </div>
-  );
+  const renderQuestionSelector = () => {
+    const categories = Object.values(BEHAVIORAL_QUESTIONS);
+    const hasFilter = Boolean(selectedCategory);
+
+    return (
+      <div className="question-selector">
+        <div className="question-selector__toolbar">
+          <label htmlFor="category-select" className="question-selector__sub-label">Category</label>
+          <select
+            id="category-select"
+            className="question-selector__dropdown question-selector__dropdown--category"
+            value={selectedCategory}
+            onChange={handleCategoryChange}
+            aria-label="Filter questions by category"
+          >
+            <option value="">All categories</option>
+            {categories.map(category => (
+              <option key={category.id} value={category.id}>{category.name}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="button button--small question-selector__random"
+            onClick={handleRandomQuestion}
+            aria-label="Pick a random question"
+          >
+            <i className="fas fa-random icon-sm"></i>
+            Random
+          </button>
+        </div>
+
+        <label htmlFor="question-select" className="question-selector__label">
+          <i className="fas fa-question-circle icon-sm icon-primary"></i>
+          Choose your question:
+        </label>
+        <select
+          id="question-select"
+          className={`question-selector__dropdown ${validationError ? 'question-selector__dropdown--error' : ''}`}
+          value={selectedQuestion}
+          onChange={handleQuestionChange}
+          required
+          aria-invalid={Boolean(validationError)}
+          aria-describedby={validationError ? 'question-error' : undefined}
+        >
+          <option value="">Select a behavioral question...</option>
+          {hasFilter
+            ? getQuestionsByCategory(selectedCategory).map((question) => (
+                <option key={question.id} value={question.id}>
+                  {question.text}
+                </option>
+              ))
+            : categories.map(category => (
+                <optgroup key={category.id} label={category.name}>
+                  {category.questions.map(question => (
+                    <option key={question.id} value={question.id}>{question.text}</option>
+                  ))}
+                </optgroup>
+              ))}
+        </select>
+        {renderValidationError()}
+      </div>
+    );
+  };
 
   const renderSelectedQuestion = () => (
     <div>

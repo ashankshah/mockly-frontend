@@ -204,7 +204,7 @@ const FeedbackReport = React.memo(({ report }) => {
       return count + (Array.isArray(starData[key]) && starData[key].length > 0 ? 1 : 0);
     }, 0);
 
-    //coontent score
+    //content score
     const bonus = (presentCount / 4) * 25;
     const baseScore = typeof starData.score === 'number' ? starData.score : 0;
     const contentScore = Math.round(baseScore + bonus);
