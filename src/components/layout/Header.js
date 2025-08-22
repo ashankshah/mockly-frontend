@@ -41,7 +41,11 @@ function Header({
   };
 
   const handleNavigateToProgress = () => {
-    onNavigateToProfile();
+    if (!isAuthenticated) {
+      onShowAuthModal();
+    } else {
+      onNavigateToProfile();
+    }
   };
 
   const renderNavLinks = () => (

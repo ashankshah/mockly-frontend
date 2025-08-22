@@ -577,6 +577,7 @@ const App = () => {
                   <InterviewSession 
                     onStart={handleInterviewStart} 
                     initialQuestion={selectedQuestion}
+                    onShowAuthModal={handleShowAuthModal}
                   />
                 </div>
               </div>
