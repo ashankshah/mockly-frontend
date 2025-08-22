@@ -1,0 +1,106 @@
+/* Editable transcript textarea styles */
+.transcript-main__editable {
+  width: 100% !important;
+  min-height: 200px;
+  border: none !important;
+  outline: none !important;
+  resize: vertical;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  background: transparent !important;
+  padding: 8px;
+  color: inherit;
+}
+
+.transcript-main__editable::placeholder {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Confirmation modal styles */
+.transcript-confirmation-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.transcript-confirmation-modal__content {
+  background-color: white;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid #e1e5e9;
+}
+
+.transcript-confirmation-modal__title {
+  margin-bottom: 16px;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.transcript-confirmation-modal__description {
+  margin-bottom: 16px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.transcript-confirmation-modal__textarea {
+  width: 100%;
+  min-height: 300px;
+  border: 2px solid #e1e5e9;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 20px;
+}
+
+.transcript-confirmation-modal__textarea:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.transcript-confirmation-modal__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.transcript-confirmation-modal__button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  font-size: 14px;
+}
+
+.transcript-confirmation-modal__button--cancel {
+  background: white;
+  color: #666;
+  border: 2px solid #ccc;
+}
+
+.transcript-confirmation-modal__button--primary {
+  background: #007bff;
+  color: white;
+}
+
+.transcript-confirmation-modal__button--danger {
+  background: #dc3545;
+  color: white;
+}

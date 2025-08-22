@@ -4,7 +4,7 @@ import PermissionScreen from '../interview/PermissionScreen';
 import VideoCard from '../layout/VideoCard';
 import EyeTrackingAnalyzer from './EyeTrackingAnalyzer';
 import HandTrackingAnalyzer from './HandTrackingAnalyzer';
-
+import './Transcript.css';
 
 import { useMediaStream } from '../../hooks/useMediaStream';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
@@ -21,12 +21,16 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, pre
   const [isInitialized, setIsInitialized] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
 
+  // NEW STATE for editable transcript feature
+  const [editableTranscript, setEditableTranscript] = useState('');
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [pendingEnd, setPendingEnd] = useState(false);
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
     const secs = (seconds % 60).toString().padStart(2, '0');
     return `${mins}:${secs}`;
   };
-
 
   const [eyeTrackingMetrics, setEyeTrackingMetrics] = useState({
     eyeContactPercentage: 0,
@@ -78,6 +82,14 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, pre
       : speechRecognition.transcript;
   }, [transcriptSimulation.simulatedTranscript, speechRecognition.transcript]);
 
+  // NEW: Update editable transcript when live transcript changes
+  useEffect(() => {
+    const liveText = getLiveTranscript();
+    if (liveText && !showConfirmationModal) {
+      setEditableTranscript(liveText);
+    }
+  }, [getLiveTranscript(), showConfirmationModal]);
+
   const handleEyeTrackingUpdate = useCallback((metrics) => {
     setEyeTrackingMetrics(metrics);
     latestEyeMetricsRef.current = metrics;
@@ -91,20 +103,13 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, pre
   const handleHandTrackingUpdate = useCallback((metrics) => {
     setHandTrackingMetrics(metrics);
     latestHandMetricsRef.current = metrics;
-    // console.log('📨 VideoAudioProcessor RECEIVED hand tracking update:', metrics);
     setHandTrackingMetrics(metrics);
     latestHandMetricsRef.current = metrics;
-    // console.log('💾 Hand tracking metrics stored in state');
   }, []);
 
-  // Direct analysis functions that update state variables
-  // Eye tracking analysis is now handled by the EyeTrackingAnalyzer component
-  // which provides real-time face detection and eye contact analysis
-  
   const performVoiceAnalysis = useCallback(() => {
     if (!isVoiceAnalysisActive || !mediaStream.mediaStream) return;
     
-    // Simulate voice analysis and update metrics
     const mockVoiceMetrics = {
       volume: Math.floor(Math.random() * 100),
       averageVolume: Math.floor(Math.random() * 100),
@@ -122,7 +127,6 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, pre
   const performHandTrackingAnalysis = useCallback(() => {
     if (!isHandTrackingActive || !mediaStream.videoRef.current) return;
     
-    // Simulate hand tracking analysis and update metrics
     const mockHandMetrics = {
       handMetrics: [
         {
@@ -163,67 +167,86 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, pre
     }
   }, []);
 
+  // NEW: Handle transcript confirmation
+  const handleConfirmTranscript = useCallback(() => {
+    const finalEyeMetrics = latestEyeMetricsRef.current || eyeTrackingMetrics;
+    const finalVoiceMetrics = latestVoiceMetricsRef.current || voiceMetrics;
+    const finalHandMetrics = latestHandMetricsRef.current || handTrackingMetrics;
+    
+    // Use the edited transcript instead of the original
+    const finalTranscript = editableTranscript.trim();
+
+    console.log('🎯 STEP 3A - VideoAudioProcessor creating final report with edited transcript');
+    console.log('👁️ Final eye metrics:', finalEyeMetrics);
+    console.log('🎙️ Final voice metrics:', finalVoiceMetrics);
+    console.log('🤲 Final hand metrics:', finalHandMetrics);
+    console.log('📝 Final edited transcript:', finalTranscript);
+
+    const finalReport = {
+      ...DEFAULT_METRICS,
+      eyeContactPercentage: finalEyeMetrics?.eyeContactPercentage || 0,
+      smilePercentage: finalEyeMetrics?.smilePercentage || 0,
+      sessionDuration: finalEyeMetrics?.sessionTime || '00:00',
+      
+      averageVolume: finalVoiceMetrics?.averageVolume || 0,
+      volumeVariation: finalVoiceMetrics?.volumeVariation || 0,
+      pitchVariation: finalVoiceMetrics?.pitchVariation || 0,
+      speechRate: finalVoiceMetrics?.speechRate || 0,
+      clarity: finalVoiceMetrics?.clarity || 0,
+      totalSamples: finalVoiceMetrics?.totalSamples || 0,
+      
+      handMetrics: finalHandMetrics?.handMetrics || [],
+      feedback: finalHandMetrics?.feedback || 'No data',
+      handFeedback: finalHandMetrics?.feedback || 'No data',
+      
+      eyeTracking: finalEyeMetrics || {},
+      voiceAnalysis: finalVoiceMetrics || {},
+      handTracking: finalHandMetrics || {}
+    };
+
+    console.log('📊 STEP 3B - Final report created with edited transcript:', finalReport);
+
+    // Close modal and proceed with normal flow
+    setShowConfirmationModal(false);
+    setIsFinished(true);
+    setIsEyeTrackingActive(false);
+    setIsVoiceAnalysisActive(false);
+    setIsHandTrackingActive(false);
+
+    if (TranscriptValidator.isValid(finalTranscript)) {
+      console.log('📝 STEP 3C - Calling onFinish with edited transcript');
+      onFinish(finalReport, finalTranscript, selectedQuestion);
+    } else {
+      console.log('📝 STEP 3C - Calling onFinish with empty transcript');
+      onFinish(finalReport, '', selectedQuestion);
+    }
+  }, [editableTranscript, onFinish, eyeTrackingMetrics, voiceMetrics, handTrackingMetrics, selectedQuestion]);
+
   const handleInterviewCompletion = useCallback(() => {
-  if (isFinished) return;
-  setIsFinished(true);
-  setIsEyeTrackingActive(false);
-  setIsVoiceAnalysisActive(false);
-  setIsHandTrackingActive(false);
-
-  const finalEyeMetrics = latestEyeMetricsRef.current || eyeTrackingMetrics;
-  const finalVoiceMetrics = latestVoiceMetricsRef.current || voiceMetrics;
-  const finalHandMetrics = latestHandMetricsRef.current || handTrackingMetrics;
-  const completeTranscript = getCurrentTranscript();
-
-  console.log('🎯 STEP 3A - VideoAudioProcessor creating final report');
-  console.log('👁️ Final eye metrics:', finalEyeMetrics);
-  console.log('🎙️ Final voice metrics:', finalVoiceMetrics);
-  console.log('🤲 Final hand metrics:', finalHandMetrics);
-
-  const finalReport = {
-    ...DEFAULT_METRICS,
-    // Eye tracking data (top level)
-    eyeContactPercentage: finalEyeMetrics?.eyeContactPercentage || 0,
-    smilePercentage: finalEyeMetrics?.smilePercentage || 0,
-    sessionDuration: finalEyeMetrics?.sessionTime || '00:00',
+    if (isFinished) return;
     
-    // Voice analysis data (top level)
-    averageVolume: finalVoiceMetrics?.averageVolume || 0,
-    volumeVariation: finalVoiceMetrics?.volumeVariation || 0,
-    pitchVariation: finalVoiceMetrics?.pitchVariation || 0,
-    speechRate: finalVoiceMetrics?.speechRate || 0,
-    clarity: finalVoiceMetrics?.clarity || 0,
-    totalSamples: finalVoiceMetrics?.totalSamples || 0,
-    
-    // 🔧 FIXED: Hand tracking data (flattened to top level)
-    handMetrics: finalHandMetrics?.handMetrics || [],
-    feedback: finalHandMetrics?.feedback || 'No data',
-    handFeedback: finalHandMetrics?.feedback || 'No data',
-    
-    // Keep nested versions for compatibility
-    eyeTracking: finalEyeMetrics || {},
-    voiceAnalysis: finalVoiceMetrics || {},
-    handTracking: finalHandMetrics || {}
-  };
+    // NEW: Show confirmation modal instead of immediately finishing
+    setShowConfirmationModal(true);
+    setPendingEnd(false);
+  }, [isFinished]);
 
-  console.log('📊 STEP 3B - Final report created:', finalReport);
-  console.log('🔍 Report keys:', Object.keys(finalReport));
-  console.log('🤲 Hand data in report:', {
-    handMetrics: finalReport.handMetrics,
-    feedback: finalReport.feedback,
-    handFeedback: finalReport.handFeedback
-  });
+  // NEW: Handle interview end button click
+  const handleEndClick = useCallback(() => {
+    if (!isFinished && window.confirm(UI_TEXT.END_CONFIRMATION)) {
+      setPendingEnd(true);
+      setShowConfirmationModal(true);
+    }
+  }, [isFinished]);
 
-  if (TranscriptValidator.isValid(completeTranscript)) {
-    console.log('📝 STEP 3C - Calling onFinish with valid transcript');
-    console.log('🔍 selectedQuestion being passed to onFinish:', selectedQuestion);
-    onFinish(finalReport, completeTranscript, selectedQuestion);
-  } else {
-    console.log('📝 STEP 3C - Calling onFinish with empty transcript');
-    console.log('🔍 selectedQuestion being passed to onFinish:', selectedQuestion);
-    onFinish(finalReport, '', selectedQuestion);
-  }
-}, [isFinished, getCurrentTranscript, onFinish, eyeTrackingMetrics, voiceMetrics, handTrackingMetrics]);
+  // NEW: Handle actual end after confirmation
+  const handleConfirmEnd = useCallback(() => {
+    setShowConfirmationModal(false);
+    setIsFinished(true);
+    setIsEyeTrackingActive(false);
+    setIsVoiceAnalysisActive(false);
+    setIsHandTrackingActive(false);
+    if (onEnd) onEnd();
+  }, [onEnd]);
 
   const resetAllMetrics = useCallback(() => {
     setEyeTrackingMetrics(DEFAULT_METRICS);
@@ -243,10 +266,8 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, pre
       setupDotAnimation();
       resetAllMetrics();
       
-      // Run transcription diagnostic in development mode
       if (DevHelpers.isApiDisabled()) {
         console.log('🔍 Running transcription diagnostic...');
-        // Diagnostic removed - transcription is working in Chrome
       }
       
       if (presetMediaStream) {
@@ -276,17 +297,14 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, pre
 
   useEffect(() => {
     scrollToBottom();
-  }, [getLiveTranscript(), scrollToBottom]);
+  }, [editableTranscript, scrollToBottom]);
 
-  // Periodic analysis execution
   useEffect(() => {
     if (!isInitialized) return;
     
     const analysisInterval = setInterval(() => {
-      // performEyeTrackingAnalysis(); // This line is removed as per the edit hint
       performVoiceAnalysis();
-      // performHandTrackingAnalysis();
-    }, 1000); // Run analysis every second
+    }, 1000);
     
     return () => clearInterval(analysisInterval);
   }, [isInitialized, performVoiceAnalysis, performHandTrackingAnalysis]);
@@ -310,7 +328,6 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, pre
     };
   }, []);
 
-    // ⏱️ Timer effect for session duration
   useEffect(() => {
     let timerInterval;
 
@@ -324,7 +341,6 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, pre
       clearInterval(timerInterval);
     };
   }, [isInitialized]);
-
 
   if (mediaStream.permissionState !== 'granted') {
     return (
@@ -362,25 +378,6 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, pre
         </div>
 
         <div className="interview-main">
-          {/* <div style={{ background: '#e8f5e8', border: '2px solid #4ade80', borderRadius: '8px', padding: '12px', marginBottom: '16px', fontSize: '14px' }}>
-            <strong>🔍 SIMPLE DEBUG:</strong>
-            <br />
-            Voice Average: {voiceMetrics.averageVolume}% | Variation: {voiceMetrics.volumeVariation}% | Samples: {voiceMetrics.totalSamples}
-            <br />
-            Eye Contact: {eyeTrackingMetrics.eyeContactPercentage}% | Smile: {eyeTrackingMetrics.smilePercentage}% | Status: {eyeTrackingMetrics.gazeStatus}
-            <br />
-            Hand Feedback: {handTrackingMetrics.feedback}
-            <br />
-            <strong style={{ color: voiceMetrics.averageVolume > 5 ? 'green' : 'red' }}>
-              Voice Status: {voiceMetrics.averageVolume > 5 ? '✅ DETECTED' : '❌ NOT DETECTED'}
-            </strong>
-            <br />
-            <strong style={{ color: isEyeTrackingActive ? 'green' : 'red' }}>
-              Eye Tracking: {isEyeTrackingActive ? '✅ REAL ANALYSIS ACTIVE' : '❌ INACTIVE'}
-            </strong>
-          </div> */}
-
-          {/* Real Eye Tracking Analysis Component */}
           <EyeTrackingAnalyzer
             videoRef={mediaStream.videoRef}
             isActive={isEyeTrackingActive}
@@ -395,18 +392,22 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, pre
             onMetricsUpdate={handleHandTrackingUpdate}
           />
 
-
           <div className="transcript-main">
             <div className="transcript-main__header">
               <h3 className="transcript-main__title">
                 <i className="fas fa-file-alt icon-sm"></i>
-                Live Transcript
+                Live Transcript (Editable)
               </h3>
             </div>
             <div className="transcript-main__content" ref={transcriptScrollableRef}>
-              <p className="transcript-main__text">
-                {getLiveTranscript() || `${speechRecognition.isListening ? 'Listening' : 'Ready to listen'}${listeningDots}`}
-              </p>
+              {/* NEW: Editable textarea instead of read-only paragraph */}
+              <textarea
+                className="transcript-main__editable"
+                value={editableTranscript || `${speechRecognition.isListening ? 'Listening' : 'Ready to listen'}${listeningDots}`}
+                onChange={(e) => setEditableTranscript(e.target.value)}
+                placeholder="Your transcript will appear here. You can edit it while speaking..."
+                aria-label="Editable interview transcript"
+              />
               {DevHelpers.isTranscriptSimulationEnabled() && (
                 <div className="transcript-main__dev-indicator">
                   [DEV] Transcript simulation active
@@ -417,18 +418,51 @@ const VideoAudioProcessor = React.memo(({ onFinish, onEnd, selectedQuestion, pre
         </div>
       </div>
 
-
+      {/* NEW: Confirmation Modal */}
+      {showConfirmationModal && (
+        <div className="transcript-confirmation-modal">
+          <div className="transcript-confirmation-modal__content">
+            <h3 className="transcript-confirmation-modal__title">
+              {pendingEnd ? 'Confirm End Interview' : 'Review Your Transcript'}
+            </h3>
+            <p className="transcript-confirmation-modal__description">
+              {pendingEnd 
+                ? 'Please review and edit your transcript before ending the interview:'
+                : 'Please review and edit your transcript before proceeding:'
+              }
+            </p>
+            
+            <textarea
+              className="transcript-confirmation-modal__textarea"
+              value={editableTranscript}
+              onChange={(e) => setEditableTranscript(e.target.value)}
+              placeholder="Edit your transcript here..."
+            />
+            
+            <div className="transcript-confirmation-modal__actions">
+              <button
+                className="transcript-confirmation-modal__button transcript-confirmation-modal__button--cancel"
+                onClick={() => setShowConfirmationModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className={`transcript-confirmation-modal__button ${
+                  pendingEnd 
+                    ? 'transcript-confirmation-modal__button--danger' 
+                    : 'transcript-confirmation-modal__button--primary'
+                }`}
+                onClick={pendingEnd ? handleConfirmEnd : handleConfirmTranscript}
+              >
+                {pendingEnd ? 'End Interview' : 'Confirm & Continue'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="interview-layout__button-container">
-        <button className="button interview-layout__end-button" onClick={() => {
-          if (!isFinished && window.confirm(UI_TEXT.END_CONFIRMATION)) {
-            setIsFinished(true);
-            setIsEyeTrackingActive(false);
-            setIsVoiceAnalysisActive(false);
-            setIsHandTrackingActive(false);
-            if (onEnd) onEnd();
-          }
-        }}>
+        <button className="button interview-layout__end-button" onClick={handleEndClick}>
           <i className="fas fa-times icon-sm"></i>
           {UI_TEXT.END_INTERVIEW}
         </button>
